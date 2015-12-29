@@ -230,6 +230,8 @@ if (otherIn != -1) inputFilename = process.argv[otherIn + 1];
 let otherOut = process.argv.indexOf('-o');
 if (otherOut != -1) outputFilename = process.argv[otherOut + 1];
 
+download('http://hackjack.info/rocade/bordeaux/images/', inputFilename, main);
+
 setInterval(() => {
   download('http://hackjack.info/rocade/bordeaux/images/', inputFilename, main)
 }, 5000000);
