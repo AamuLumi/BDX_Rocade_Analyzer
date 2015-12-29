@@ -4,21 +4,13 @@ let cv = require("opencv"),
   request = require("request"),
   mongoose = require("mongoose"),
   fs = require('fs'),
-  async = require('async');
+  async = require('async'),
+  PartEntry = require('./PartEntry');
 
 // Mongoose Connection
 mongoose.connect('mongodb://localhost/roccade');
 mongoose.connection.on('error',
   console.error.bind(console, 'connection error:'));
-
-// Database Variables
-let PartEntrySchema = new mongoose.Schema({
-  date: Date,
-  partNumber: Number,
-  trafficState: Number
-});
-
-let PartEntry = mongoose.model('PartEntry', PartEntrySchema);
 
 // Colors
 let GREEN = [0, 255, 0];
@@ -405,4 +397,4 @@ download('http://hackjack.info/rocade/bordeaux/images/', inputFilename, main);
 
 setInterval(() => {
   download('http://hackjack.info/rocade/bordeaux/images/', inputFilename, main)
-}, 5000000);
+}, 300000);
