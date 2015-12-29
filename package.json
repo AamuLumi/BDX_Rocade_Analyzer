@@ -1,0 +1,15 @@
+{
+  "name": "TrafficAnalysis",
+  "version": "0.0.1",
+  "description": "A Bordeaux Traffic Analyzer",
+  "author": "Florian Kauder<florian@kauder.fr>",
+  "main": "./main.js",
+  "scripts": {},
+  "dependencies": {
+    "async": "^1.5.0",
+    "mongoose": "^4.3.4",
+    "opencv": "^4.0.0",
+    "request": "^2.67.0"
+  },
+  "license": "MIT"
+}
