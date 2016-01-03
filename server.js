@@ -12,10 +12,10 @@ mongoose.connection.on('error',
   console.error.bind(console, 'connection error:'));
 
 app.get('/all', (req, res) => {
-  PartEntry.find().then(function(err, entries){
+  PartEntry.find(function(err, entries){
     res.status(200).send(entries);
-  })
-})
+  });
+});
 
 app.listen(9900, () => {
   console.log("Server is ready !");
