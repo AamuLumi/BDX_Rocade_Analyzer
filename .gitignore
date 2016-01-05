@@ -27,3 +27,5 @@ build/Release
 node_modules
 
 db
+analyzer/in.png
+analyzer/out.png
