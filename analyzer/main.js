@@ -290,22 +290,21 @@ let main = function main() {
           calculatedMatrix.set(p.y, p.x, ColorConst.G_BLACK);
         }
       }
+
+      saves.push(function saveEntry(callback) {
+        p.save((err, entry) => {
+          if (err) console.error(err);
+          else entries.push(entry);
+          callback();
+        });
+      });
+
+      currentPart++;
     }
 
-    //   saves.push(function saveEntry(callback) {
-    //     p.save((err, entry) => {
-    //       if (err) console.error(err);
-    //       else entries.push(entry);
-    //       callback();
-    //     });
-    //   });
-    //
-    //   currentPart++;
-    // }
-    //
-    // async.parallel(saves, () => {
-    //   console.log("> " + entries.length + " entries saved on " + parts.length);
-    // });
+    async.parallel(saves, () => {
+      console.log("> " + entries.length + " entries saved on " + parts.length);
+    });
 
     // Save matrix
     console.log("> Saving ...");
@@ -315,7 +314,7 @@ let main = function main() {
   })
 }
 
-console.log("== Bdx Roccade Traffic Analysis v"+ pjson.version +" ==\n");
+console.log("== Bdx Roccade Traffic Analysis v" + pjson.version + " ==\n");
 
 NetworkTools.download('http://hackjack.info/rocade/bordeaux/images/', inputFilename, main);
 
