@@ -1,5 +1,7 @@
 'use strict';
 
+require('console-stamp')(console, '[HH:MM:ss.l]');
+
 let express = require('express'),
     app = express();
 
