@@ -26,8 +26,8 @@ const TRAFFIC_ORANGE = 1;
 const TRAFFIC_RED = 2;
 const TRAFFIC_BLACK = 3;
 
-let inputFilename = "./in.png";
-let outputFilename = "./out.png";
+let inputFilename = __dirname + "/in.png";
+let outputFilename = __dirname + "/out.png";
 
 const inCoordonates = [{
   x: 836,

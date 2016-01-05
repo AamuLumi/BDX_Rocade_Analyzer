@@ -3,12 +3,16 @@
     "uid" : "BRA - Main",
     "append" : "true",
     "watch" : "true",
-    "script" : "analyzer/main.js"
+    "script" : "main.js",
+    "sourceDir" : "analyzer/",
+    "workingDir" : "analyzer/"
   },
   {
     "uid" : "BRA - Server",
     "append" : "true",
     "watch" : "true",
-    "script" : "server/server.js"
+    "script" : "server.js",
+    "sourceDir" : "server/",
+    "workingDir" : "server/"
   }
 ]
