@@ -2,7 +2,6 @@
   {
     "uid" : "BRA - Main",
     "append" : "true",
-    "watch" : "true",
     "script" : "main.js",
     "sourceDir" : "analyzer/",
     "workingDir" : "analyzer/"
@@ -10,7 +9,6 @@
   {
     "uid" : "BRA - Server",
     "append" : "true",
-    "watch" : "true",
     "script" : "server.js",
     "sourceDir" : "server/",
     "workingDir" : "server/"
