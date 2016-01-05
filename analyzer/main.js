@@ -1,30 +1,22 @@
 'use strict';
 
+require('console-stamp')(console, '[HH:MM:ss.l]');
+
 let cv = require("opencv"),
-  request = require("request"),
   mongoose = require("mongoose"),
-  fs = require('fs'),
   async = require('async'),
-  PartEntry = require('./PartEntry');
+  ColorTools = require('./ColorTools'),
+  ColorConst = ColorTools.const,
+  NetworkTools = require('./NetworkTools'),
+  PartEntry = require('root-require')('server/PartEntry'),
+  pjson = require('root-require')('package.json');
 
 // Mongoose Connection
 mongoose.connect('mongodb://localhost/roccade');
 mongoose.connection.on('error',
   console.error.bind(console, 'connection error:'));
 
-// Colors
-let GREEN = [0, 255, 0];
-let ORANGE = [0, 154, 255];
-let RED = [0, 0, 255];
-let BLACK = [0, 0, 0];
-
-let G_GREEN = 255;
-let G_ORANGE = 192;
-let G_RED = 128;
-let G_BLACK = 64;
-
 // Constants
-const threshold = 5;
 const thresholdRoads = 50;
 const maxDistanceBetweenRoads = 15;
 const minimumPartPixels = 20;
@@ -65,26 +57,7 @@ let calculatedMatrix;
 let pixelsColor;
 let parts;
 let blocks;
-
-// Download a file
-let download = function(uri, filename, callback) {
-  request.head(uri, function(err, res, body) {
-    console.log('content-type:', res.headers['content-type']);
-    console.log('content-length:', res.headers['content-length']);
-
-    request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
-  });
-};
-
-// Test if a pixel is a kind of color
-let is = function(color, pixel) {
-  return isAround(color[0], pixel[0]) && isAround(color[1], pixel[1]) && isAround(color[2], pixel[2]);
-}
-
-// Check a value around another
-let isAround = function(colorValue, pixelValue) {
-  return pixelValue >= colorValue - threshold && pixelValue <= colorValue + threshold;
-}
+let currentAnalysis = 0;
 
 // Calculate a part containing pixel (x,y)
 let calculatePart = function(im, x, y) {
@@ -111,10 +84,10 @@ let determineColorForPart = function(part, colors) {
 
   for (let pixel of part.pixels) {
     let p = colors[pixel.x + '-' + pixel.y];
-    if (p == G_GREEN) colored.green++;
-    else if (p == G_ORANGE) colored.orange++;
-    else if (p == G_RED) colored.red++;
-    else if (p == G_BLACK) colored.black++;
+    if (p == ColorConst.G_GREEN) colored.green++;
+    else if (p == ColorConst.G_ORANGE) colored.orange++;
+    else if (p == ColorConst.G_RED) colored.red++;
+    else if (p == ColorConst.G_BLACK) colored.black++;
   }
 
   let moreGreenThanOrange = colored.green > colored.orange;
@@ -227,7 +200,7 @@ let main = function main() {
   cv.readImage(inputFilename, function(err, im) {
     if (err) throw err;
 
-    console.log("== Bdx Roccade Traffic Analysis ==");
+    console.log("=> Analysis " + currentAnalysis);
 
     pixelsColor = {};
     parts = [];
@@ -241,21 +214,21 @@ let main = function main() {
     console.log("> Reading pixels");
     for (let i = 0; i < im.width(); i++) {
       for (let j = 0; j < im.height(); j++) {
-        if (is(GREEN, im.pixel(j, i))) {
-          pixelsColor[i + '-' + j] = G_GREEN;
-          resultMatrix.set(j, i, G_GREEN);
+        if (ColorTools.is(ColorConst.GREEN, im.pixel(j, i))) {
+          pixelsColor[i + '-' + j] = ColorConst.G_GREEN;
+          resultMatrix.set(j, i, ColorConst.G_GREEN);
         }
-        else if (is(ORANGE, im.pixel(j, i))) {
-          pixelsColor[i + '-' + j] = G_ORANGE;
-          resultMatrix.set(j, i, G_ORANGE);
+        else if (ColorTools.is(ColorConst.ORANGE, im.pixel(j, i))) {
+          pixelsColor[i + '-' + j] = ColorConst.G_ORANGE;
+          resultMatrix.set(j, i, ColorConst.G_ORANGE);
         }
-        else if (is(RED, im.pixel(j, i))) {
-          pixelsColor[i + '-' + j] = G_RED;
-          resultMatrix.set(j, i, G_RED);
+        else if (ColorTools.is(ColorConst.RED, im.pixel(j, i))) {
+          pixelsColor[i + '-' + j] = ColorConst.G_RED;
+          resultMatrix.set(j, i, ColorConst.G_RED);
         }
-        else if (is(BLACK, im.pixel(j, i))) {
-          pixelsColor[i + '-' + j] = G_BLACK;
-          resultMatrix.set(j, i, G_BLACK);
+        else if (ColorTools.is(ColorConst.BLACK, im.pixel(j, i))) {
+          pixelsColor[i + '-' + j] = ColorConst.G_BLACK;
+          resultMatrix.set(j, i, ColorConst.G_BLACK);
         }
       }
     }
@@ -281,24 +254,6 @@ let main = function main() {
       }
     }
 
-    // let currentValue = 1;
-    //
-    // console.log("> Determine coordonates colors");
-    // console.log("- In :");
-    // for (let c of inCoordonates) {
-    //   c.color = getColorForNearestPart(parts, c.x, c.y);
-    //   console.log("- [" + currentValue + "] : " + c.color);
-    //   currentValue++;
-    // }
-    //
-    // currentValue = 1;
-    // console.log("- Out :");
-    // for (let c of outCoordonates) {
-    //   c.color = getColorForNearestPart(parts, c.x, c.y);
-    //   console.log("- [" + currentValue + "] : " + c.color);
-    //   currentValue++;
-    // }
-
     console.log("> Creating output file");
     // Fill calculatedMatrix with found parts
     let currentPart = 0;
@@ -314,87 +269,56 @@ let main = function main() {
       if (part.color === 'orange') {
         p.trafficState = TRAFFIC_ORANGE;
         for (let p of part.pixels) {
-          calculatedMatrix.set(p.y, p.x, G_ORANGE);
+          calculatedMatrix.set(p.y, p.x, ColorConst.G_ORANGE);
         }
       }
       else if (part.color === 'green') {
         p.trafficState = TRAFFIC_GREEN;
         for (let p of part.pixels) {
-          calculatedMatrix.set(p.y, p.x, G_GREEN);
+          calculatedMatrix.set(p.y, p.x, ColorConst.G_GREEN);
         }
       }
       else if (part.color === 'red') {
         p.trafficState = TRAFFIC_RED;
         for (let p of part.pixels) {
-          calculatedMatrix.set(p.y, p.x, G_RED);
+          calculatedMatrix.set(p.y, p.x, ColorConst.G_RED);
         }
       }
       else {
         p.trafficState = TRAFFIC_BLACK;
         for (let p of part.pixels) {
-          calculatedMatrix.set(p.y, p.x, G_BLACK);
+          calculatedMatrix.set(p.y, p.x, ColorConst.G_BLACK);
         }
       }
-
-      saves.push(function saveEntry(callback) {
-        p.save((err, entry) => {
-          if (err) console.error(err);
-          else entries.push(entry);
-          callback();
-        });
-      });
-
-      currentPart++;
     }
 
-    async.parallel(saves, () => {
-      console.log("> " + entries.length + " entries saved on " + parts.length);
-    });
-
-    // let cpParts = parts.slice(0);
-    //
-    // while (cpParts.length > 0) {
-    //   let foundParts = searchNeighboursFor(cpParts, cpParts[0]);
-    //
-    //   let block = {
-    //     parts: foundParts
-    //   };
-    //
-    //   blocks.push(block);
-    // }
-    //
-    // console.log(blocks);
-    // console.log(parts.length);
-    //
-    // let currentPart = 0;
-    //
-    // for (let b of blocks) {
-    //   for (let p of b.parts) {
-    //     let color = (currentPart * 100) % 256;
-    //     if (color > 200) color = (color + 56) % 256;
-    //     for (let px of p.pixels)
-    //       calculatedMatrix.set(px.y, px.x, color);
-    //
-    //     calculatedMatrix.set(p.center[1], p.center[0], 255);
-    //   }
+    //   saves.push(function saveEntry(callback) {
+    //     p.save((err, entry) => {
+    //       if (err) console.error(err);
+    //       else entries.push(entry);
+    //       callback();
+    //     });
+    //   });
     //
     //   currentPart++;
     // }
-
-    // console.log(nbOrange);
-    // console.log(JSON.stringify(parts[3]));
-    // console.log(JSON.stringify(coordonates));
+    //
+    // async.parallel(saves, () => {
+    //   console.log("> " + entries.length + " entries saved on " + parts.length);
+    // });
 
     // Save matrix
     console.log("> Saving ...");
     calculatedMatrix.save(outputFilename);
 
-    console.log("> Done ! Bye bye !");
+    console.log("> Analysis ended\n");
   })
 }
 
-download('http://hackjack.info/rocade/bordeaux/images/', inputFilename, main);
+console.log("== Bdx Roccade Traffic Analysis v"+ pjson.version +" ==\n");
+
+NetworkTools.download('http://hackjack.info/rocade/bordeaux/images/', inputFilename, main);
 
 setInterval(() => {
-  download('http://hackjack.info/rocade/bordeaux/images/', inputFilename, main)
+  NetworkTools.download('http://hackjack.info/rocade/bordeaux/images/', inputFilename, main)
 }, 300000);

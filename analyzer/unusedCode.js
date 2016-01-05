@@ -1,3 +1,61 @@
+// Algorithm to search a point in the road
+
+let currentValue = 1;
+
+console.log("> Determine coordonates colors");
+console.log("- In :");
+for (let c of inCoordonates) {
+  c.color = getColorForNearestPart(parts, c.x, c.y);
+  console.log("- [" + currentValue + "] : " + c.color);
+  currentValue++;
+}
+
+currentValue = 1;
+console.log("- Out :");
+for (let c of outCoordonates) {
+  c.color = getColorForNearestPart(parts, c.x, c.y);
+  console.log("- [" + currentValue + "] : " + c.color);
+  currentValue++;
+}
+
+// Algorithm to calculate and show blocks of roads
+
+let cpParts = parts.slice(0);
+
+while (cpParts.length > 0) {
+  let foundParts = searchNeighboursFor(cpParts, cpParts[0]);
+
+  let block = {
+    parts: foundParts
+  };
+
+  blocks.push(block);
+}
+
+console.log(blocks);
+console.log(parts.length);
+
+let currentPart = 0;
+
+for (let b of blocks) {
+  for (let p of b.parts) {
+    let color = (currentPart * 100) % 256;
+    if (color > 200) color = (color + 56) % 256;
+    for (let px of p.pixels)
+      calculatedMatrix.set(px.y, px.x, color);
+
+    calculatedMatrix.set(p.center[1], p.center[0], 255);
+  }
+
+  currentPart++;
+}
+
+console.log(nbOrange);
+console.log(JSON.stringify(parts[3]));
+console.log(JSON.stringify(coordonates));
+
+// Algorithm which search a way on the road
+
 let currentPoint = beg;
 let lastBegPoint = beg;
 let nbPoints = 0;
