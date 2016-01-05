@@ -1,0 +1,6 @@
+.git
+.gitignore
+.foreverignore
+db/
+analyzer/in.png
+analyzer/out.png

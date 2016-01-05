@@ -1,0 +1,14 @@
+[
+  {
+    "uid" : "BRA - Main",
+    "append" : "true",
+    "watch" : "true",
+    "script" : "main.js"
+  },
+  {
+    "uid" : "BRA - Server",
+    "append" : "true",
+    "watch" : "true",
+    "script" : "server.js"
+  }
+]
