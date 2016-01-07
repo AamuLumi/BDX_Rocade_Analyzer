@@ -125,6 +125,8 @@ app.get('/since/:date', (req, res) => {
       }).select('date trafficState partNumber')
       .then((entries) => {
         res.status(200).send(entries);
+      }, (err) => {
+        res.status(500).send(err);
       })
   }
 })
@@ -136,6 +138,8 @@ app.get('/part/:part', (req, res) => {
     }).select('date trafficState partNumber')
     .then((entries) => {
       res.status(200).send(entries);
+    }, (err) => {
+      res.status(500).send(err);
     })
 })
 
