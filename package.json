@@ -8,7 +8,9 @@
   "repository": "https://github.com/AamuLumi/BDX_Roccade_Analyzer",
   "dependencies": {
     "async": "^1.5.0",
+    "body-parser": "^1.14.2",
     "console-stamp": "^0.2.0",
+    "datejs": "0.0.2",
     "express": "^4.13.3",
     "mongoose": "^4.3.4",
     "opencv": "^4.0.0",
