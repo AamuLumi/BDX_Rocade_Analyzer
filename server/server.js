@@ -47,6 +47,16 @@ app.get('/since/:date', (req, res) => {
   }
 })
 
+// Get entries for part p
+app.get('/part/:part', (req, res) => {
+  PartEntry.find({
+    partNumber : req.params.part
+  }).select('date trafficState partNumber')
+  .then((entries) => {
+    res.status(200).send(entries);
+  })
+})
+
 app.listen(9900, () => {
   console.log("> Server is ready !");
 });
