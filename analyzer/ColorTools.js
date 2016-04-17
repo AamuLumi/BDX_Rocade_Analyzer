@@ -15,13 +15,24 @@ const threshold = 5;
 
 // Check a value around another
 function isAround(colorValue, pixelValue) {
-  return pixelValue >= colorValue - threshold && pixelValue <= colorValue + threshold;
+    return pixelValue >= colorValue - threshold && pixelValue <=
+        colorValue + threshold;
 }
 
 // Test if a pixel is a kind of color
 module.exports.is = function is(color, pixel) {
-  return isAround(color[0], pixel[0]) && isAround(color[1], pixel[1]) && isAround(color[2], pixel[2]);
-}
+    return isAround(color[0], pixel[0]) && isAround(color[1],
+        pixel[1]) && isAround(color[2], pixel[2]);
+};
 
 module.exports.isAround = isAround;
-module.exports.const = {GREEN, ORANGE, RED, BLACK, G_GREEN, G_ORANGE, G_RED, G_BLACK};
+module.exports.const = {
+    GREEN,
+    ORANGE,
+    RED,
+    BLACK,
+    G_GREEN,
+    G_ORANGE,
+    G_RED,
+    G_BLACK
+};
