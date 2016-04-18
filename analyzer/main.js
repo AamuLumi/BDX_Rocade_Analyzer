@@ -5,11 +5,13 @@ require('console-stamp')(console, '[HH:MM:ss.l]');
 let cv = require('opencv'),
     mongoose = require('mongoose'),
     async = require('async'),
+    fs = require('fs'),
     ColorTools = require('./ColorTools'),
     ColorConst = ColorTools.const,
     NetworkTools = require('./NetworkTools'),
     PartEntry = require('root-require')('server/PartEntry'),
-    pjson = require('root-require')('package.json');
+    pjson = require('root-require')('package.json'),
+    Rocade = require('./Rocade');
 
 // Mongoose Connection
 mongoose.connect('mongodb://localhost/roccade');
@@ -17,8 +19,8 @@ mongoose.connection.on('error',
     console.error.bind(console, 'connection error:'));
 
 // Constants
-// const thresholdRoads = 50;
-// const maxDistanceBetweenRoads = 15;
+const thresholdRoads = 50;
+const maxDistanceBetweenRoads = 15;
 const minimumPartPixels = 20;
 
 const TRAFFIC_GREEN = 0;
@@ -31,14 +33,16 @@ const NOT_FOUND = -1;
 const DELAY_TIME = 300000;
 
 let inputFilename = __dirname + '/in.png';
-let outputFilename = __dirname + '/out.png';
+let outputFilename = undefined;
 
 // Variables
 let resultMatrix = [];
 let calculatedMatrix = [];
 let pixelsColor = [];
 let parts = [];
+let blocks = [];
 let currentAnalysis = 0;
+let ids = {};
 
 // Fill pixels array with all pixel of the part
 // This is a flood-fill algorithm
@@ -135,6 +139,28 @@ let determineCenterForPart = function(part) {
         part.pixels.length)];
 };
 
+let generateIds = function() {
+    for (let parts of Rocade.parts) {
+        for (let part of parts.parts) {
+            for (let e of part) {
+                if (!ids[e.center[0]]) {
+                    ids[e.center[0]] = {};
+                }
+
+                ids[e.center[0]][e.center[1]] = e.partNumber;
+            }
+        }
+    }
+};
+
+let getIdFor = function(center) {
+    if (ids[center[0]] && ids[center[0]][center[1]]) {
+        return ids[center[0]][center[1]];
+    }
+
+    return NOT_FOUND;
+};
+
 let otherIn = process.argv.indexOf('-i');
 if (otherIn !== NOT_FOUND) {
     inputFilename = process.argv[otherIn + 1];
@@ -144,6 +170,8 @@ let otherOut = process.argv.indexOf('-o');
 if (otherOut !== NOT_FOUND) {
     outputFilename = process.argv[otherOut + 1];
 }
+
+generateIds();
 
 // Main code
 let main = function main() {
@@ -222,59 +250,70 @@ let main = function main() {
             }
         }
 
-        console.log('> Creating output file');
+        console.log(
+            '> Creating output file and records'
+        );
         // Fill calculatedMatrix with found parts
-        let currentPart = 0;
         let entries = [];
         let saves = [];
         let currentDate = Date.now();
 
         for (let part of parts) {
             let p = new PartEntry();
-            p.partNumber = currentPart;
+            p.partNumber = getIdFor(part.center);
             p.date = currentDate;
 
             if (part.color === 'orange') {
                 p.trafficState = TRAFFIC_ORANGE;
-                for (let p of part.pixels) {
-                    calculatedMatrix.set(p.y, p.x,
-                        ColorConst.G_ORANGE);
-                }
             } else if (part.color === 'green') {
                 p.trafficState = TRAFFIC_GREEN;
-                for (let p of part.pixels) {
-                    calculatedMatrix.set(p.y, p.x,
-                        ColorConst.G_GREEN);
-                }
             } else if (part.color === 'red') {
                 p.trafficState = TRAFFIC_RED;
-                for (let p of part.pixels) {
-                    calculatedMatrix.set(p.y, p.x,
-                        ColorConst.G_RED);
-                }
             } else {
                 p.trafficState = TRAFFIC_BLACK;
-                for (let p of part.pixels) {
-                    calculatedMatrix.set(p.y, p.x,
-                        ColorConst.G_BLACK);
+            }
+
+            if (outputFilename) {
+                if (part.color === 'orange') {
+                    for (let p of part.pixels) {
+                        calculatedMatrix.set(p.y, p.x,
+                            ColorConst.G_ORANGE);
+                    }
+                } else if (part.color === 'green') {
+                    for (let p of part.pixels) {
+                        calculatedMatrix.set(p.y, p.x,
+                            ColorConst.G_GREEN);
+                    }
+                } else if (part.color === 'red') {
+                    for (let p of part.pixels) {
+                        calculatedMatrix.set(p.y, p.x,
+                            ColorConst.G_RED);
+                    }
+                } else {
+                    for (let p of part.pixels) {
+                        calculatedMatrix.set(p.y, p.x,
+                            ColorConst.G_BLACK);
+                    }
                 }
             }
 
-            saves.push(function saveEntry(callback) {
-                p.save((err, entry) => {
-                    if (err) {
-                        console.error(
-                            err);
-                    } else {
-                        entries.push(
-                            entry
-                        );
-                    }
-                    callback();
+            if (p.partNumber >= 0) {
+                saves.push(function saveEntry(
+                    callback) {
+                    p.save((err, entry) => {
+                        if (err) {
+                            console.error(
+                                err
+                            );
+                        } else {
+                            entries.push(
+                                entry
+                            );
+                        }
+                        callback();
+                    });
                 });
-            });
-
-            currentPart++;
+            }
         }
 
         async.parallel(saves, () => {
@@ -284,8 +323,10 @@ let main = function main() {
         });
 
         // Save matrix
-        console.log('> Saving ...');
-        calculatedMatrix.save(outputFilename);
+        if (outputFilename) {
+            console.log('> Saving ...');
+            calculatedMatrix.save(outputFilename);
+        }
 
         console.log('> Analysis ended\n');
     });

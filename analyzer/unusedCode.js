@@ -244,3 +244,83 @@
 //
 //     return block;
 // }
+// // Search nearest part and return its color
+// let getColorForNearestPart = function(parts, x, y) {
+//     let currentParts = [];
+//
+//     for (let p of parts) {
+//         let d = distanceBetween(p.center, [x, y]);
+//         if (d < thresholdRoads) {
+//             currentParts.push(p);
+//         }
+//     }
+//
+//     for (let p of currentParts) {
+//         for (let pix of p.pixels) {
+//             if (pix.x == x && pix.y == y) return p.color;
+//         }
+//     }
+//
+//     let currentPart = parts[0];
+//     let currentDistance = 0xFFFFFF;
+//
+//     for (let p of parts) {
+//         let d = distanceBetween(p.center, [x, y]);
+//         if (d < currentDistance) {
+//             currentPart = p;
+//             currentDistance = d;
+//         }
+//     }
+//
+//     return currentPart.color;
+// }
+// // Calculate distance between 2 points
+// let distanceBetween = function(p1, p2) {
+//     return Math.sqrt(Math.pow(p2[0] - p1[0], 2) + Math.pow(
+//         p2[1] - p1[1], 2));
+// };
+//
+// let searchNeighboursFor = function searchNeighboursFor(parts,
+//     part) {
+//     let block = [part];
+//
+//     parts.splice(parts.indexOf(part), 1);
+//
+//     for (let p of parts) {
+//         console.log(distanceBetween(part.center, p.center));
+//         if (distanceBetween(part.center, p.center) <
+//             maxDistanceBetweenRoads) {
+//             block.push(p);
+//             parts.splice(parts.indexOf(p), 1);
+//         }
+//     }
+//
+//     return block;
+// }
+//
+//
+// // Algorithm to calculate and show blocks of roads
+// //
+//
+// let cpParts = parts.slice(0);
+//
+// for (let p of cpParts){
+//   p.pixels = undefined;
+//   console.log(p);
+// }
+//
+// while (cpParts.length > 0) {
+//   let foundParts = searchNeighboursFor(cpParts, cpParts[0]);
+//
+//   let block = [
+//   ];
+//
+//   for (let p of foundParts)
+//     block.push(p.center);
+//
+//   blocks.push(block);
+// }
+//
+// console.log(blocks);
+// fs.writeFileSync('parts.txt', JSON.stringify(blocks));
+// console.log(parts.length);
