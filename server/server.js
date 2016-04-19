@@ -19,6 +19,10 @@ const CODE_SUCCESS = 200;
 const CODE_INVALID = 400;
 const CODE_ERROR = 500;
 
+// For searching elements of same period,
+//  we say that elements are recorded in one minute max.
+const periodThreshold = 1;
+
 // Mongoose Connection
 mongoose.connect('mongodb://localhost/roccade');
 mongoose.connection.on('error',
@@ -29,6 +33,14 @@ app.use(bodyParser.urlencoded({
     extended: false
 }));
 app.use(bodyParser.json());
+
+app.use(function(req, res, next) {
+    res.header('Access-Control-Allow-Origin',
+        'http://localhost:9901');
+    res.header('Access-Control-Allow-Methods',
+        'GET, POST');
+    next();
+});
 
 // Check if a date is valid
 // (http://stackoverflow.com/questions/1353684/detecting-an-invalid-date-date-instance-in-javascript)
@@ -84,6 +96,41 @@ function parseDateForRequest(req) {
     return date;
 }
 
+function parseEntriesByDate(entries) {
+    let res = [];
+    let dateFound = false;
+
+    for (let entry of entries) {
+        dateFound = false;
+        for (let el of res) {
+            if (entry.date.compareTo(el.date) < 0) {
+                el.parts.push({
+                    partNumber: entry.partNumber,
+                    trafficState: entry.trafficState
+                });
+
+                dateFound = true;
+            }
+        }
+
+        if (!dateFound) {
+            res.push({
+                date: entry.date.add(1).minute(),
+                parts: [{
+                    partNumber: entry.partNumber,
+                    trafficState: entry.trafficState
+                }]
+            });
+        }
+    }
+
+    for (let el of res) {
+      el.date.add(-1).minute();
+    }
+
+    return res;
+}
+
 // Search entries with parameters
 // Available parameters :
 //  - part : the part to select
@@ -113,7 +160,8 @@ app.post('/request', (req, res) => {
     PartEntry.find(searchRequest).select(
             'date trafficState partNumber')
         .then((entries) => {
-            res.status(CODE_SUCCESS).send(entries);
+            res.status(CODE_SUCCESS).send(
+                parseEntriesByDate(entries));
         }, (err) => {
             res.status(CODE_ERROR).send(err);
         });
@@ -124,7 +172,8 @@ app.get('/all', (req, res) => {
     PartEntry.find().select(
         'date trafficState partNumber').then((
         entries) => {
-        res.status(CODE_SUCCESS).send(entries);
+        res.status(CODE_SUCCESS).send(
+            parseEntriesByDate(entries));
     }, (err) => {
         res.status(CODE_ERROR).send(err);
     });
@@ -144,7 +193,7 @@ app.get('/since/:date', (req, res) => {
             }).select('date trafficState partNumber')
             .then((entries) => {
                 res.status(CODE_SUCCESS).send(
-                    entries);
+                    parseEntriesByDate(entries));
             }, (err) => {
                 res.status(CODE_ERROR).send(err);
             });
@@ -157,7 +206,8 @@ app.get('/part/:part', (req, res) => {
             partNumber: req.params.part
         }).select('date trafficState partNumber')
         .then((entries) => {
-            res.status(CODE_SUCCESS).send(entries);
+            res.status(CODE_SUCCESS).send(
+                parseEntriesByDate(entries));
         }, (err) => {
             res.status(CODE_ERROR).send(err);
         });

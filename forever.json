@@ -9,6 +9,7 @@
   {
     "uid" : "BRA - Server",
     "append" : "true",
+    "watch" : "true",
     "script" : "server.js",
     "sourceDir" : "server/",
     "workingDir" : "server/"
