@@ -11,7 +11,6 @@ export function requestParts(request) {
 }
 
 export function receiveParts(json) {
-  console.log(json);
     return {
         type: RECEIVE_PARTS,
         parts: json,
@@ -20,11 +19,17 @@ export function receiveParts(json) {
 }
 
 function fetchParts(request) {
+    let body = JSON.stringify(request);
+
     return function(dispatch) {
         dispatch(requestParts(request));
 
         return fetch('http://localhost:9900/request', {
-                method: 'POST'
+                method: 'POST',
+                headers: {
+                  'Content-Type' : 'application/json'
+                },
+                body: body
             })
             .then((response) => {
                 return response.json();
@@ -34,8 +39,9 @@ function fetchParts(request) {
 }
 
 function shouldFetchParts(state, request) {
-    const parts = state.parts;
-    if (!parts) {
+    const parts = state.loadParts;
+    console.log(parts);
+    if (!parts.lastUpdated || request) {
         return true;
     } else {
         return false;

@@ -14,8 +14,9 @@ let elementsFound = [];
 
 function exist(e){
   for (let c of elementsFound){
-    if (c[0] === e[0] && c[1] === e[1])
+    if (c[0] === e[0] && c[1] === e[1]){
       return true;
+    }
   }
 
   return false;

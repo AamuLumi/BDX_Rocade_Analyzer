@@ -39,6 +39,7 @@ app.use(function(req, res, next) {
         'http://localhost:9901');
     res.header('Access-Control-Allow-Methods',
         'GET, POST');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
     next();
 });
 
@@ -142,6 +143,7 @@ function parseEntriesByDate(entries) {
 //
 // Default : period is 6 hours
 app.post('/request', (req, res) => {
+  console.log(req.body);
     let searchRequest = {};
 
     // Part number parsing

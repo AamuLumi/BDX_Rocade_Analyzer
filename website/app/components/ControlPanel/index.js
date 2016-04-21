@@ -1,18 +1,28 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import {fetchPartsIfNeeded} from '~/actions/Rocade';
+import PeriodPicker from './PeriodPicker';
 import './ControlPanel.less';
 
 class ControlPanel extends Component {
-  componentDidMount(){
+  componentDidMount() {
     this.props.fetchParts();
   }
+
+  sendRequest() {
+    console.log(this.refs.periodPicker.getRequest());
+    this.props.fetchParts(this.refs.periodPicker.getRequest());
+  }
+
   render() {
     return (
       <div id="c-controlPanel">
         <div className="title">
           Configuration
         </div>
+
+        <PeriodPicker ref="periodPicker" />
+        <button onClick={() => this.sendRequest()}>Actualiser</button>
       </div>
     );
   }
@@ -20,7 +30,7 @@ class ControlPanel extends Component {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    fetchParts : (request) => {
+    fetchParts: (request) => {
       dispatch(fetchPartsIfNeeded(request));
     }
   };
