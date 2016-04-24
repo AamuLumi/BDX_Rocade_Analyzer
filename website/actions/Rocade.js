@@ -40,7 +40,7 @@ function fetchParts(request) {
 
 function shouldFetchParts(state, request) {
     const parts = state.loadParts;
-    console.log(parts);
+
     if (!parts.lastUpdated || request) {
         return true;
     } else {

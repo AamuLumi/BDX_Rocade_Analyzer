@@ -18,38 +18,38 @@ export default {
         "partNumber": 1
       }],
       [{
-        "center": [245, 822],
+        "center": [235, 829],
         "partNumber": 2
       }, {
-        "center": [249, 827],
+        "center": [240, 834],
         "partNumber": 3
       }],
       [{
-        "center": [299, 778],
+        "center": [290, 787],
         "partNumber": 4
       }, {
-        "center": [303, 783],
+        "center": [296, 792],
         "partNumber": 5
       }],
       [{
-        "center": [353, 744],
+        "center": [338, 754],
         "partNumber": 6
       }, {
-        "center": [357, 750],
+        "center": [344, 759],
         "partNumber": 7
       }],
       [{
-        "center": [408, 715],
+        "center": [380, 734],
         "partNumber": 8
       }, {
-        "center": [413, 720],
+        "center": [385, 740],
         "partNumber": 9
       }],
       [{
-        "center": [436, 692],
+        "center": [442, 725],
         "partNumber": 10
       }, {
-        "center": [449, 697],
+        "center": [436, 730],
         "partNumber": 11
       }],
       [{
@@ -471,10 +471,10 @@ export default {
         "partNumber": 96
       }],
       [{
-        "center": [748, 586],
+        "center": [741, 570],
         "partNumber": 122
       }, {
-        "center": [740, 582],
+        "center": [736, 570],
         "partNumber": 123
       }]
     ]
@@ -489,10 +489,10 @@ export default {
         "partNumber": 125
       }],
       [{
-        "center": [671, 776],
+        "center": [658, 782],
         "partNumber": 126
       }, {
-        "center": [676, 770],
+        "center": [672, 778],
         "partNumber": 127
       }],
       [{

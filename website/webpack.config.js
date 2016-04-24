@@ -3,6 +3,8 @@
 let webpack = require('webpack');
 let path = require('path');
 
+console.log(__dirname);
+
 module.exports = {
   devtool: 'eval',
   output: {
@@ -31,7 +33,7 @@ module.exports = {
   entry: [
     'webpack-dev-server/client?http://0.0.0.0:9901',
     'webpack/hot/only-dev-server',
-    './Root'
+    path.join(__dirname, './Root')
   ],
   plugins: [
     new webpack.HotModuleReplacementPlugin()

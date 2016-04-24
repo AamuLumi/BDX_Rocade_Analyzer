@@ -10,7 +10,6 @@ class ControlPanel extends Component {
   }
 
   sendRequest() {
-    console.log(this.refs.periodPicker.getRequest());
     this.props.fetchParts(this.refs.periodPicker.getRequest());
   }
 

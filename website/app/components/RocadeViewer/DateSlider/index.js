@@ -9,10 +9,18 @@ export default class DateSlider extends Component {
     date: React.PropTypes.string
   };
 
-  translateDate(date){
+  translateDate(date) {
+    if (!date) {
+      return 'Pas d\'entrées trouvées';
+    }
+    
     let oDate = new Date(date);
 
     return oDate.toLocaleString();
+  }
+
+  setValue(i){
+    this.refs.slider.value = i;
   }
 
   render() {
@@ -27,6 +35,7 @@ export default class DateSlider extends Component {
           max={max}
           defaultValue={initial}
           id="slider"
+          ref="slider"
           onInput={() => {
           onChange(document.getElementById('slider').value);
         }}/>

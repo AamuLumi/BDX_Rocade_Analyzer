@@ -13,6 +13,21 @@ export default class PeriodPicker extends Component {
   }
 
   switchState(key) {
+    let enabledStates = ['sinceEnabled', 'untilEnabled', 'periodEnabled'];
+
+    let oneEnabled = false;
+
+    for (let s of enabledStates){
+      if (s !== key && this.state[s]){
+        if (oneEnabled){
+          // Case where two others checkboxes are checked
+          return;
+        } else {
+          oneEnabled = true;
+        }
+      }
+    }
+
     let nextState = {};
     nextState[key] = !this.state[key];
 
@@ -49,6 +64,7 @@ export default class PeriodPicker extends Component {
               <input
                 type="checkbox"
                 name="since"
+                checked={this.state.sinceEnabled}
                 onChange={() => this.switchState('sinceEnabled')}/>
               Depuis ...
             </div>
@@ -66,6 +82,7 @@ export default class PeriodPicker extends Component {
               <input
                 type="checkbox"
                 name="until"
+                checked={this.state.untilEnabled}
                 onChange={() => this.switchState('untilEnabled')}/>
               Jusqu'à ...
             </div>
@@ -81,6 +98,7 @@ export default class PeriodPicker extends Component {
               <input
                 type="checkbox"
                 name="period"
+                checked={this.state.periodEnabled}
                 onChange={() => this.switchState('periodEnabled')}/>
               Sur une période de ...
             </div>

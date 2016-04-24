@@ -124,9 +124,19 @@ class RocadeViewer extends Component {
     let lastUpdated = this.props.data.lastUpdated;
 
     if (lastUpdated && lastUpdated !== this.state.lastUpdated) {
-      this.setState({
-        lastUpdated: lastUpdated
-      }, () => {
+      this.refs.dateSlider.setValue(0);
+
+      let nextState = {
+        lastUpdated: lastUpdated,
+        valuesCursor: 0
+      };
+
+      if (this.props.data.parts.length <= 0){
+        // Setup something to say no date is found
+        nextState.currentDate = undefined;
+      }
+
+      this.setState(nextState, () => {
         this.startDraw(true);
       });
     }
@@ -325,6 +335,7 @@ class RocadeViewer extends Component {
           onChange={(v) => this.changeDate(v)}
           max={data.parts.length - 1}
           initial={0}
+          ref="dateSlider"
           date={this.state.currentDate}/>
       </div>
     );

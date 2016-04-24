@@ -1,12 +1,5 @@
 [
   {
-    "uid" : "BRA - Main",
-    "append" : "true",
-    "script" : "main.js",
-    "sourceDir" : "analyzer/",
-    "workingDir" : "analyzer/"
-  },
-  {
     "uid" : "BRA - Server",
     "append" : "true",
     "watch" : "true",

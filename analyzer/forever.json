@@ -1,0 +1,9 @@
+[
+  {
+    "uid" : "BRA - Analyzer",
+    "append" : "true",
+    "script" : "main.js",
+    "sourceDir" : "analyzer/",
+    "workingDir" : "analyzer/"
+  }
+]
