@@ -16,7 +16,7 @@ let defaultPeriod = 6;
 const PORT = 9900;
 
 const CODE_SUCCESS = 200;
-const CODE_INVALID = 400;
+// const CODE_INVALID = 400;
 const CODE_ERROR = 500;
 
 // Constants to select search parameters

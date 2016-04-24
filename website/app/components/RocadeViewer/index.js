@@ -4,6 +4,7 @@ import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import Rocade from './Rocade';
 import DateSlider from './DateSlider';
+import ViewerLegend from './ViewerLegend';
 import './RocadeViewer.less';
 
 const GREEN = 0;
@@ -41,16 +42,6 @@ function getTrafficFor(partNumber, partsArray) {
   }
 
   return NOT_FOUND;
-}
-
-function alreadyAdded(part, currentParts) {
-  for (let c of currentParts) {
-    if (part.partNumber === c.partNumber) {
-      return c.center;
-    }
-  }
-
-  return undefined;
 }
 
 class RocadeViewer extends Component {
@@ -131,7 +122,7 @@ class RocadeViewer extends Component {
         valuesCursor: 0
       };
 
-      if (this.props.data.parts.length <= 0){
+      if (this.props.data.parts.length <= 0) {
         // Setup something to say no date is found
         nextState.currentDate = undefined;
       }
@@ -142,7 +133,6 @@ class RocadeViewer extends Component {
     }
 
     if (!this.state.currentDate) {
-      console.log(this.props.data.parts);
       this.startDraw(true);
     }
   }
@@ -332,12 +322,15 @@ class RocadeViewer extends Component {
     return (
       <div id="c-rocadeViewer">
         <canvas id="rocade-canvas" data-paper-resize/>
-        <DateSlider
-          onChange={(v) => this.changeDate(v)}
-          max={data.parts.length - 1}
-          initial={0}
-          ref="dateSlider"
-          date={this.state.currentDate}/>
+        <div id="rocadeInfos">
+          <DateSlider
+            onChange={(v) => this.changeDate(v)}
+            max={data.parts.length - 1}
+            initial={0}
+            ref="dateSlider"
+            date={this.state.currentDate}/>
+          <ViewerLegend/>
+        </div>
       </div>
     );
   }
