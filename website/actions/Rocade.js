@@ -24,7 +24,7 @@ function fetchParts(request) {
     return function(dispatch) {
         dispatch(requestParts(request));
 
-        return fetch('http://localhost:9900/request', {
+        return fetch('http://localhost:9900/searchByDate', {
                 method: 'POST',
                 headers: {
                   'Content-Type' : 'application/json'

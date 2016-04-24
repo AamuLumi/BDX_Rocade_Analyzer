@@ -19,6 +19,10 @@ const CODE_SUCCESS = 200;
 const CODE_INVALID = 400;
 const CODE_ERROR = 500;
 
+// Constants to select search parameters
+const GROUP_BY_DATE = 0;
+const GROUP_BY_PART = 1;
+
 // For searching elements of same period,
 //  we say that elements are recorded in one minute max.
 const periodThreshold = 1;
@@ -39,7 +43,8 @@ app.use(function(req, res, next) {
         'http://localhost:9901');
     res.header('Access-Control-Allow-Methods',
         'GET, POST');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    res.header('Access-Control-Allow-Headers',
+        'Content-Type');
     next();
 });
 
@@ -62,11 +67,11 @@ function parseDateForRequest(req) {
 
     // If sinceDate, add it to date
     if ('since' in req.body) {
-        date.$gte = Date.parse(req.body.since).toString('s');
+        date.$gte = Date.parse(req.body.since);
 
         // If untilDate, add it
         if ('until' in req.body) {
-            date.$lte = Date.parse(req.body.until).toString('s');
+            date.$lte = Date.parse(req.body.until);
         } else { // Else we must calculate the untilDate
             let period = defaultPeriod;
 
@@ -77,11 +82,11 @@ function parseDateForRequest(req) {
 
             // Calculate untilDate
             date.$lte = Date.parse(req.body.since).addHours(
-                period).toString('s');
+                period);
         }
     } else if ('until' in req.body) {
         // No since Date, but an untilDate ?
-        date.$lte = Date.parse(req.body.until).toString('s');
+        date.$lte = Date.parse(req.body.until);
 
         // Calculate period
         let period = defaultPeriod;
@@ -91,45 +96,49 @@ function parseDateForRequest(req) {
         }
 
         date.$gte = Date.parse(req.body.until).addHours(-
-            period).toString('s');
+            period);
     }
 
     return date;
 }
 
-function parseEntriesByDate(entries) {
-    let res = [];
-    let dateFound = false;
+function searchAndParse(res, searchRequest, GROUP_BY) {
+    let pipeline = [];
 
-    for (let entry of entries) {
-        dateFound = false;
-        for (let el of res) {
-            if (entry.date.compareTo(el.date) < 0) {
-                el.parts.push({
-                    partNumber: entry.partNumber,
-                    trafficState: entry.trafficState
-                });
+    if (searchRequest) {
+        pipeline.push({
+            $match: searchRequest
+        });
+    }
 
-                dateFound = true;
+    if (GROUP_BY === GROUP_BY_DATE) {
+        pipeline.push({
+            $group: { // Group them by date
+                _id: '$date',
+                parts: {
+                    $push: {
+                        partNumber: '$partNumber',
+                        trafficState: '$trafficState'
+                    }
+                }
             }
-        }
-
-        if (!dateFound) {
-            res.push({
-                date: entry.date.add(1).minute(),
-                parts: [{
-                    partNumber: entry.partNumber,
-                    trafficState: entry.trafficState
-                }]
-            });
-        }
+        });
     }
 
-    for (let el of res) {
-      el.date.add(-1).minute();
-    }
+    pipeline.push({
+        $sort: { // Sort them by date
+            _id: 1
+        }
+    });
 
-    return res;
+    PartEntry.aggregate(pipeline, (err, entries) => {
+        if (err) {
+            res.status(CODE_ERROR).send(err);
+        } else {
+            res.status(CODE_SUCCESS).send(
+                entries);
+        }
+    });
 }
 
 // Search entries with parameters
@@ -142,8 +151,7 @@ function parseEntriesByDate(entries) {
 //  - period : time of period to get (in hours)
 //
 // Default : period is 6 hours
-app.post('/request', (req, res) => {
-  console.log(req.body);
+app.post('/searchByDate', (req, res) => {
     let searchRequest = {};
 
     // Part number parsing
@@ -159,61 +167,47 @@ app.post('/request', (req, res) => {
         searchRequest.trafficState = parseInt(req.body.state);
     }
 
-    PartEntry.find(searchRequest).select(
-            'date trafficState partNumber')
-        .then((entries) => {
-            res.status(CODE_SUCCESS).send(
-                parseEntriesByDate(entries));
-        }, (err) => {
-            res.status(CODE_ERROR).send(err);
-        });
+    searchAndParse(res, searchRequest, GROUP_BY_DATE);
 });
-
-// Get all entries
-app.get('/all', (req, res) => {
-    PartEntry.find().select(
-        'date trafficState partNumber').then((
-        entries) => {
-        res.status(CODE_SUCCESS).send(
-            parseEntriesByDate(entries));
-    }, (err) => {
-        res.status(CODE_ERROR).send(err);
-    });
-});
-
-// Get entries since a specific date
-app.get('/since/:date', (req, res) => {
-    let d = new Date(req.params.date);
-
-    if (!isValidDate(d)) {
-        res.status(CODE_INVALID).send('Invalid Date');
-    } else {
-        PartEntry.find({
-                date: {
-                    $gte: d
-                }
-            }).select('date trafficState partNumber')
-            .then((entries) => {
-                res.status(CODE_SUCCESS).send(
-                    parseEntriesByDate(entries));
-            }, (err) => {
-                res.status(CODE_ERROR).send(err);
-            });
-    }
-});
-
-// Get entries for part p
-app.get('/part/:part', (req, res) => {
-    PartEntry.find({
-            partNumber: req.params.part
-        }).select('date trafficState partNumber')
-        .then((entries) => {
-            res.status(CODE_SUCCESS).send(
-                parseEntriesByDate(entries));
-        }, (err) => {
-            res.status(CODE_ERROR).send(err);
-        });
-});
+//
+// // Get all entries
+// app.get('/all', (req, res) => {
+//     searchAndParse(res, null, GROUP_BY_DATE);
+// });
+//
+// // Get entries since a specific date
+// app.get('/since/:date', (req, res) => {
+//     let d = new Date(req.params.date);
+//
+//     if (!isValidDate(d)) {
+//         res.status(CODE_INVALID).send('Invalid Date');
+//     } else {
+//         PartEntry.find({
+//                 date: {
+//                     $gte: d
+//                 }
+//             }).select('date trafficState partNumber')
+//             .then((entries) => {
+//                 res.status(CODE_SUCCESS).send(
+//                     parseEntriesByDate(entries));
+//             }, (err) => {
+//                 res.status(CODE_ERROR).send(err);
+//             });
+//     }
+// });
+//
+// // Get entries for part p
+// app.get('/part/:part', (req, res) => {
+//     PartEntry.find({
+//             partNumber: req.params.part
+//         }).select('date trafficState partNumber')
+//         .then((entries) => {
+//             res.status(CODE_SUCCESS).send(
+//                 parseEntriesByDate(entries));
+//         }, (err) => {
+//             res.status(CODE_ERROR).send(err);
+//         });
+// });
 
 app.listen(PORT, () => {
     console.log('> Server is ready !');

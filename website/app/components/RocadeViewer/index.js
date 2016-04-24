@@ -92,7 +92,7 @@ class RocadeViewer extends Component {
     };
 
     if (this.props.data.parts && this.props.data.parts[value]) {
-      nextState.currentDate = this.props.data.parts[value].date;
+      nextState.currentDate = this.props.data.parts[value]._id;
     }
 
     this.setState(nextState, () => {
@@ -142,6 +142,7 @@ class RocadeViewer extends Component {
     }
 
     if (!this.state.currentDate) {
+      console.log(this.props.data.parts);
       this.startDraw(true);
     }
   }
@@ -162,7 +163,7 @@ class RocadeViewer extends Component {
     // If this is the first drawing and there's data loaded, add
     // the first date to state
     if (isFirst && this.props.data.parts && this.props.data.parts[0]) {
-      nextState.currentDate = this.props.data.parts[0].date;
+      nextState.currentDate = this.props.data.parts[0]._id;
     }
 
     // Change state, and start drawing
