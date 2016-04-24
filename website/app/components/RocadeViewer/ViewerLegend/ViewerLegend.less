@@ -1,0 +1,44 @@
+#c-viewerLegend {
+    font-family: Arial;
+    max-width: 35%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    .title{
+      font-size: 1.2em;
+    }
+    .legends {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        justify-content: space-around;
+        font-size: 0.8em;
+        .legend {
+            display: flex;
+            flex-flow: row;
+            justify-content: space-around;
+            padding: 0 8px;
+            .legendCircle {
+                border-radius: 50%;
+                width: 12px;
+                height: 12px;
+                margin-right: 4px;
+            }
+            #legendFluid {
+                background-color: #2196F3;
+            }
+            #legendDense {
+                background-color: #FB8C00;
+            }
+            #legendSaturated {
+                background-color: #F44336;
+            }
+            #legendBlocked {
+                background-color: black;
+            }
+            #legendNotFound {
+                background-color: #EEEEEE;
+            }
+        }
+    }
+}
