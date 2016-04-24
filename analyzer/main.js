@@ -5,7 +5,7 @@ require('console-stamp')(console, '[HH:MM:ss.l]');
 let cv = require('opencv'),
     mongoose = require('mongoose'),
     async = require('async'),
-    fs = require('fs'),
+//    fs = require('fs'),
     ColorTools = require('./ColorTools'),
     ColorConst = ColorTools.const,
     NetworkTools = require('./NetworkTools'),
@@ -19,9 +19,13 @@ mongoose.connection.on('error',
     console.error.bind(console, 'connection error:'));
 
 // Constants
-const thresholdRoads = 50;
-const maxDistanceBetweenRoads = 15;
+// const thresholdRoads = 50;
+// const maxDistanceBetweenRoads = 15;
 const minimumPartPixels = 20;
+// Constant used by the function partAround
+// It serves to determine if the part is around the center,
+//   which avoid unfound parts because of center moved by 1 pixel.
+const thresholdAround = 3;
 
 const TRAFFIC_GREEN = 0;
 const TRAFFIC_ORANGE = 1;
@@ -40,7 +44,7 @@ let resultMatrix = [];
 let calculatedMatrix = [];
 let pixelsColor = [];
 let parts = [];
-let blocks = [];
+// let blocks = [];
 let currentAnalysis = 0;
 let ids = {};
 
@@ -154,11 +158,26 @@ let generateIds = function() {
 };
 
 let getIdFor = function(center) {
-    if (ids[center[0]] && ids[center[0]][center[1]]) {
-        return ids[center[0]][center[1]];
+  // !== undefined is needed, because there's a part which id is 0
+  //   so without undefined, it considers condition false
+  if (ids[center[0]] && ids[center[0]][center[1]] !== undefined) {
+      return ids[center[0]][center[1]];
+  } else { // Id not found, so search around center
+    let minX = center[0] - thresholdAround,
+      maxX = center[0] + thresholdAround,
+      minY = center[1] - thresholdAround,
+      maxY = center[1] + thresholdAround;
+
+    for (let i = minX; i < maxX; i++){
+      for (let j = minY; j < maxY; j++){
+        if (ids[i] && ids[i][j]){
+          return ids[i][j];
+        }
+      }
     }
 
     return NOT_FOUND;
+  }
 };
 
 let otherIn = process.argv.indexOf('-i');
@@ -315,6 +334,7 @@ let main = function main() {
                 });
             }
         }
+
 
         async.parallel(saves, () => {
             console.log('> ' + entries.length +
