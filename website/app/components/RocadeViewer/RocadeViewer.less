@@ -1,14 +1,59 @@
-#c-rocadeViewer{
-  flex: 1 auto;
-  height: 100%;
-  margin: 0 20px;
-  #rocade-canvas{
-    width: 100%;
-    height: 90%;
-  }
-  #rocadeInfos{
-    height: 10%;
-    display: flex;
-    flex-direction: row;
-  }
+#c-rocadeViewer {
+    flex: 1 auto;
+    height: 100%;
+    margin: 0 20px;
+    #rocade-canvas {
+        position: relative;
+        width: 100%;
+        height: 90%;
+    }
+    #partInformations {
+        font-family: Arial;
+        background-color: #EEEEEE;
+        box-shadow: 0 2px 5px 2px #888888;
+        padding: 8px;
+        position: absolute;
+        z-index: 10;
+        width: 180px;
+        a {
+          text-decoration: none;
+          font-weight: bolder;
+        }
+        .description {
+            font-size: 0.8em;
+            padding-top: 4px;
+            .close {
+              position: absolute;
+              top: 8px;
+              right: 8px;
+              font-size: 0.75em;
+              cursor: pointer;
+              color: blue;
+              font-weight: bold;
+            }
+            .stateText {
+              font-weight: bold;
+            }
+            .fluid {
+                color: #2196F3;
+            }
+            .dense {
+                color: #FB8C00;
+            }
+            .saturated {
+                color: #F44336;
+            }
+            .blocked {
+                color: black;
+            }
+            .notFound {
+                color: gray;
+            }
+        }
+    }
+    #rocadeInfos {
+        height: 10%;
+        display: flex;
+        flex-direction: row;
+    }
 }

@@ -18,6 +18,10 @@ const CANVAS_PADDING = 40;
 const STROKE_WIDTH = 15;
 const CIRCLE_RADIUS = 7.5;
 const SPREADING_FACTOR = 1.5;
+const SELECTION_RADIUS = CIRCLE_RADIUS * 2;
+const SELECTION_STROKE_COLOR = 'black';
+const SELECTION_STROKE_WIDTH = 3;
+const PADDING_INFOS = 15;
 
 function getColorForTraffic(c) {
   switch (c) {
@@ -44,6 +48,34 @@ function getTrafficFor(partNumber, partsArray) {
   return NOT_FOUND;
 }
 
+function getX(x, minX) {
+  return x - minX + CANVAS_PADDING;
+}
+
+function getY(y, minY) {
+  return y - minY + CANVAS_PADDING;
+}
+
+function createCircle(x, y, color, radius) {
+  return new paper.Shape.Circle({
+    center: [
+      x, y
+    ],
+    fillColor: color,
+    radius: radius
+  });
+}
+
+function createPointInPath(path, x, y, color) {
+  createCircle(x, y, color, CIRCLE_RADIUS);
+
+  path.add(new paper.Point(x, y));
+}
+
+function between(i, min, max) {
+  return i >= min && i <= max;
+}
+
 class RocadeViewer extends Component {
   constructor(props) {
     super(props);
@@ -53,28 +85,11 @@ class RocadeViewer extends Component {
       currentDate: undefined,
       valuesCursor: 0,
       mustRedraw: false,
-      lastUpdated: -1
+      lastUpdated: -1,
+      drawnPoints: [],
+      selection: undefined,
+      selectionInfos: undefined
     };
-  }
-
-  createPointInPath(path, x, y, color) {
-    new paper.Shape.Circle({
-      center: [
-        x, y
-      ],
-      fillColor: color,
-      radius: CIRCLE_RADIUS
-    });
-
-    path.add(new paper.Point(x, y));
-  }
-
-  getX(x, minX) {
-    return x - minX + CANVAS_PADDING;
-  }
-
-  getY(y, minY) {
-    return y - minY + CANVAS_PADDING;
   }
 
   changeDate(value) {
@@ -150,10 +165,13 @@ class RocadeViewer extends Component {
       mustRedraw: false
     };
 
+    // Make a variable to short access
+    let data = this.props.data;
+
     // If this is the first drawing and there's data loaded, add
     // the first date to state
-    if (isFirst && this.props.data.parts && this.props.data.parts[0]) {
-      nextState.currentDate = this.props.data.parts[0]._id;
+    if (isFirst && data.parts && data.parts[0]) {
+      nextState.currentDate = data.parts[0]._id;
     }
 
     // Change state, and start drawing
@@ -166,6 +184,12 @@ class RocadeViewer extends Component {
     // Setup canvas
     let canvas = document.getElementById('rocade-canvas');
     paper.setup(canvas);
+
+    // Make a variable to short access
+    let data = this.props.data;
+
+    // Array to store drawn points
+    let drawnPoints = [];
 
     // Clear any datas already drawn
     paper.project.clear();
@@ -216,8 +240,8 @@ class RocadeViewer extends Component {
     // Get loaded datas
     let currentParts = undefined;
 
-    if (this.props.data && this.props.data.parts[valuesCursor] && this.props.data.parts[valuesCursor].parts) {
-      currentParts = this.props.data.parts[valuesCursor].parts;
+    if (data && data.parts[valuesCursor] && data.parts[valuesCursor].parts) {
+      currentParts = data.parts[valuesCursor].parts;
     }
 
     // For each "path" (= group of parts)
@@ -235,10 +259,10 @@ class RocadeViewer extends Component {
       // For each part of the path
       for (let i = 0; i < current.parts.length; i++) {
         // Get coordonates of the two roads
-        let x1 = this.getX(current.parts[i][0].center[0], minX);
-        let y1 = this.getY(current.parts[i][0].center[1], minY);
-        let x2 = this.getX(current.parts[i][1].center[0], minX);
-        let y2 = this.getY(current.parts[i][1].center[1], minY);
+        let x1 = getX(current.parts[i][0].center[0], minX);
+        let y1 = getY(current.parts[i][0].center[1], minY);
+        let x2 = getX(current.parts[i][1].center[0], minX);
+        let y2 = getY(current.parts[i][1].center[1], minY);
 
         /* Spreading operation
          * We need to spread roads. Initially, roads are more collapsed.
@@ -282,8 +306,11 @@ class RocadeViewer extends Component {
             color = 'gray';
           }
 
+          // Store point in a structure
+          drawnPoints.push({x: x, y: y, partNumber: partNumber, trafficState: trafficState});
+
           // Add point to the path
-          this.createPointInPath(currentPath, x, y, color);
+          createPointInPath(currentPath, x, y, color);
         }
       }
 
@@ -298,6 +325,8 @@ class RocadeViewer extends Component {
       }
     }
 
+    this.setupMouse();
+
     // Redraw if the state.mustRedraw has been changed during
     // drawing It perform a resize queue
     if (this.state.mustRedraw) {
@@ -305,6 +334,9 @@ class RocadeViewer extends Component {
     } else {
       // Nothing to redraw, to update the view
       paper.view.update(true);
+
+      // Update drawnPoints
+      this.setState({drawnPoints: drawnPoints});
     }
   }
 
@@ -316,21 +348,173 @@ class RocadeViewer extends Component {
     });
   }
 
+  findDrawnPoint(point) {
+    let drawnPoints = this.state.drawnPoints;
+
+    if (!drawnPoints) {
+      return null;
+    }
+
+    for (let p of drawnPoints) {
+      if (between(point.x, p.x - CIRCLE_RADIUS, p.x + CIRCLE_RADIUS) && between(point.y, p.y - CIRCLE_RADIUS, p.y + CIRCLE_RADIUS)) {
+        return p;
+      }
+    }
+
+    return null;
+  }
+
+  setupMouse() {
+    let tool = new paper.Tool();
+
+    tool.onMouseDown = (event) => {
+      let p = this.findDrawnPoint(event.point);
+
+      if (!p) {
+        return;
+      }
+
+      this.cleanSelection();
+
+      let selection = createCircle(p.x, p.y, getColorForTraffic(p.trafficState), SELECTION_RADIUS);
+      selection.strokeColor = SELECTION_STROKE_COLOR;
+      selection.strokeWidth = SELECTION_STROKE_WIDTH;
+
+      this.setState({selection: selection, selectionInfos: p});
+    };
+
+    tool.activate();
+  }
+
+  cleanSelection() {
+    if (this.state.selection) {
+      this.state.selection.remove();
+      paper.view.update(true);
+    }
+
+    this.setState({
+      selection: undefined,
+      selectionInfos: undefined
+    }, () => {
+      return;
+    });
+  }
+
+  getInfosPosition() {
+    if (!this.state.selectionInfos) {
+      return undefined;
+    }
+
+    let bodyPosition = document.body.getBoundingClientRect();
+    let canvas = document.getElementById('rocade-canvas');
+    if (!canvas) {
+      return;
+    }
+
+    let rect = canvas.getBoundingClientRect();
+
+    const {width, height, selectionInfos} = this.state;
+    const halfWidth = width / 2,
+      halfHeight = height / 2;
+
+    let res = {};
+
+    if (selectionInfos.y < halfHeight) {
+      res.top = selectionInfos.y + rect.top + PADDING_INFOS;
+    } else {
+      res.bottom = bodyPosition.bottom - rect.top - selectionInfos.y + PADDING_INFOS;
+    }
+
+    if (selectionInfos.x < halfWidth) {
+      res.left = selectionInfos.x + rect.left + PADDING_INFOS;
+    } else {
+      res.right = bodyPosition.right - selectionInfos.x - rect.left + PADDING_INFOS;
+    }
+
+    return res;
+  }
+
+  createPartInformations() {
+    const {selectionInfos} = this.state;
+
+    if (!selectionInfos) {
+      return undefined;
+    }
+
+    let style = this.getInfosPosition();
+
+    let traffic = undefined;
+
+    switch (selectionInfos.trafficState) {
+      case GREEN:
+        traffic = {
+          name: 'Fluide',
+          id: 'fluid'
+        };
+        break;
+      case ORANGE:
+        traffic = {
+          name: 'Dense',
+          id: 'dense'
+        };
+        break;
+      case RED:
+        traffic = {
+          name: 'Saturé',
+          id: 'saturated'
+        };
+        break;
+      case BLACK:
+        traffic = {
+          name: 'Bloqué',
+          id: 'blocked'
+        };
+        break;
+      default:
+        traffic = {
+          name: 'Non disponible',
+          id: 'notFound'
+        };
+        break;
+    }
+
+    traffic.id += ' stateText';
+
+    let partInformations = <div style={style} id="partInformations">
+      Portion n°{selectionInfos.partNumber}
+      <div className="description">
+        Traffic :&nbsp;
+        <span className={traffic.id}>{traffic.name}</span><br/>
+        <a href="#">Voir l'historique</a>
+        <div
+          className="close"
+          onClick={() => this.cleanSelection()}>Fermer</div>
+      </div>
+    </div>;
+
+    return partInformations;
+  }
+
   render() {
     const {data} = this.props;
+    const {currentDate} = this.state;
+
+    let partInformations = this.createPartInformations();
 
     return (
       <div id="c-rocadeViewer">
-        <canvas id="rocade-canvas" data-paper-resize/>
+        <canvas id="rocade-canvas" data-paper-resize/> {partInformations}
+
         <div id="rocadeInfos">
           <DateSlider
             onChange={(v) => this.changeDate(v)}
             max={data.parts.length - 1}
             initial={0}
             ref="dateSlider"
-            date={this.state.currentDate}/>
+            date={currentDate}/>
           <ViewerLegend/>
         </div>
+
       </div>
     );
   }
