@@ -23,6 +23,9 @@ const SELECTION_STROKE_COLOR = 'black';
 const SELECTION_STROKE_WIDTH = 3;
 const PADDING_INFOS = 15;
 
+const LAYER_PARTS = 0;
+const LAYER_SELECTION = 1;
+
 function getColorForTraffic(c) {
   switch (c) {
     case GREEN:
@@ -113,6 +116,7 @@ class RocadeViewer extends Component {
       window.addEventListener('resize', (e) => {
         this.handleResize(e);
       });
+      this.setupMouse();
     });
   }
 
@@ -149,6 +153,16 @@ class RocadeViewer extends Component {
 
     if (!this.state.currentDate) {
       this.startDraw(true);
+    }
+  }
+
+  changeCurrentLayer(n){
+    if (!paper.project.layers[n]){
+      while (!paper.project.layers[n]){
+        let l = new paper.Layer();
+      }
+    } else {
+      paper.project.layers[n].activate;
     }
   }
 
@@ -193,6 +207,8 @@ class RocadeViewer extends Component {
 
     // Clear any datas already drawn
     paper.project.clear();
+
+    this.changeCurrentLayer(LAYER_PARTS);
 
     // Setup constants
     const {width, height, valuesCursor} = this.state;
@@ -325,8 +341,6 @@ class RocadeViewer extends Component {
       }
     }
 
-    this.setupMouse();
-
     // Redraw if the state.mustRedraw has been changed during
     // drawing It perform a resize queue
     if (this.state.mustRedraw) {
@@ -336,7 +350,9 @@ class RocadeViewer extends Component {
       paper.view.update(true);
 
       // Update drawnPoints
-      this.setState({drawnPoints: drawnPoints});
+      this.setState({drawnPoints: drawnPoints}, () => {
+        this.updateSelection(this.state.selectionInfos);
+      });
     }
   }
 
@@ -351,7 +367,7 @@ class RocadeViewer extends Component {
   findDrawnPoint(point) {
     let drawnPoints = this.state.drawnPoints;
 
-    if (!drawnPoints) {
+    if (!drawnPoints || !point) {
       return null;
     }
 
@@ -368,29 +384,37 @@ class RocadeViewer extends Component {
     let tool = new paper.Tool();
 
     tool.onMouseDown = (event) => {
-      let p = this.findDrawnPoint(event.point);
-
-      if (!p) {
-        return;
-      }
-
-      this.cleanSelection();
-
-      let selection = createCircle(p.x, p.y, getColorForTraffic(p.trafficState), SELECTION_RADIUS);
-      selection.strokeColor = SELECTION_STROKE_COLOR;
-      selection.strokeWidth = SELECTION_STROKE_WIDTH;
-
-      this.setState({selection: selection, selectionInfos: p});
+      this.updateSelection(event.point);
     };
 
     tool.activate();
   }
 
-  cleanSelection() {
-    if (this.state.selection) {
-      this.state.selection.remove();
-      paper.view.update(true);
+  updateSelection(point){
+    let p = this.findDrawnPoint(point);
+
+    if (!p) {
+      return;
     }
+
+    this.cleanSelection();
+
+    this.changeCurrentLayer(LAYER_SELECTION);
+
+    let selection = createCircle(p.x, p.y, getColorForTraffic(p.trafficState), SELECTION_RADIUS);
+    selection.strokeColor = SELECTION_STROKE_COLOR;
+    selection.strokeWidth = SELECTION_STROKE_WIDTH;
+
+    paper.view.update(true);
+
+    this.setState({selection: selection, selectionInfos: p});
+  }
+
+  cleanSelection() {
+    this.changeCurrentLayer(LAYER_SELECTION);
+    paper.project.activeLayer.removeChildren();
+
+    paper.view.update(true);
 
     this.setState({
       selection: undefined,
@@ -480,7 +504,7 @@ class RocadeViewer extends Component {
 
     traffic.id += ' stateText';
 
-    let partInformations = <div style={style} id="partInformations">
+    return ( <div style={style} id="partInformations">
       Portion n°{selectionInfos.partNumber}
       <div className="description">
         Traffic :&nbsp;
@@ -490,9 +514,7 @@ class RocadeViewer extends Component {
           className="close"
           onClick={() => this.cleanSelection()}>Fermer</div>
       </div>
-    </div>;
-
-    return partInformations;
+    </div> );
   }
 
   render() {
