@@ -5,6 +5,7 @@ import {connect} from 'react-redux';
 import Rocade from './Rocade';
 import DateSlider from './DateSlider';
 import ViewerLegend from './ViewerLegend';
+import InfoBubble from './InfoBubble';
 import './RocadeViewer.less';
 
 const GREEN = 0;
@@ -25,8 +26,6 @@ const PADDING_INFOS = 15;
 
 const LAYER_PARTS = 0;
 const LAYER_SELECTION = 1;
-
-const MS_IN_MINUTES = 60 * 1000;
 
 function getColorForTraffic(c) {
   switch (c) {
@@ -81,10 +80,6 @@ function between(i, min, max) {
   return i >= min && i <= max;
 }
 
-function dateDifference(d1, d2) {
-  return new Date(d2).getTime() - new Date(d1).getTime();
-}
-
 class RocadeViewer extends Component {
   constructor(props) {
     super(props);
@@ -101,19 +96,9 @@ class RocadeViewer extends Component {
     };
   }
 
-  changeDate(value) {
-    let nextState = {
-      valuesCursor: value
-    };
-
-    if (this.props.data.parts && this.props.data.parts[value]) {
-      nextState.currentDate = this.props.data.parts[value]._id;
-    }
-
-    this.setState(nextState, () => {
-      this.draw();
-    });
-  }
+  /***************************************************
+   * 						COMPONENT METHODS                    *
+   ***************************************************/
 
   componentWillMount() {
     this.setState({
@@ -125,14 +110,6 @@ class RocadeViewer extends Component {
       this.setupMouse();
     });
   }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', (e) => {
-      this.handleResize(e);
-    });
-  }
-
-  componentDidMount() {}
 
   componentWillReceiveProps(nextProps) {
     this.props = nextProps;
@@ -162,6 +139,100 @@ class RocadeViewer extends Component {
     }
   }
 
+  componentWillUnmount() {
+    window.removeEventListener('resize', (e) => {
+      this.handleResize(e);
+    });
+  }
+
+  handleResize() {
+    this.setState({
+      mustRedraw: true
+    }, () => {
+      this.startDraw(false);
+      this.render();
+    });
+  }
+
+  setupMouse() {
+    let tool = new paper.Tool();
+
+    tool.onMouseDown = (event) => {
+      this.updateSelection(event.point);
+    };
+
+    tool.activate();
+  }
+
+  /***************************************************
+   * 						DATA SEARCH METHODS                  *
+   ***************************************************/
+
+  getBeginningOf(p) {
+    const {valuesCursor} = this.state;
+    const {data} = this.props;
+
+    let lastTime = 0;
+
+    if (!data || !data.parts || valuesCursor <= 0) {
+      return 0;
+    }
+
+    for (let c = 0; c < valuesCursor; c++) {
+      for (let part of data.parts[c].parts) {
+        if (part.partNumber === p.partNumber) {
+          if (part.trafficState === p.trafficState && lastTime === 0) {
+            lastTime = data.parts[c]._id;
+          } else if (part.trafficState !== p.trafficState) {
+            lastTime = 0;
+          }
+          break;
+        }
+      }
+
+    }
+
+    return lastTime;
+  }
+
+  findDrawnPoint(point) {
+    let drawnPoints = this.state.drawnPoints;
+
+    if (!drawnPoints || !point) {
+      return null;
+    }
+
+    for (let p of drawnPoints) {
+      if (between(point.x, p.x - CIRCLE_RADIUS, p.x + CIRCLE_RADIUS) && between(point.y, p.y - CIRCLE_RADIUS, p.y + CIRCLE_RADIUS)) {
+        return p;
+      }
+    }
+
+    return null;
+  }
+
+  /***************************************************
+   * 						UPDATE METHODS                       *
+   ***************************************************/
+
+  changeDate(value) {
+    let nextState = {
+      valuesCursor: value
+    };
+
+    if (this.props.data.parts && this.props.data.parts[value]) {
+      nextState.currentDate = this.props.data.parts[value]._id;
+    }
+
+    this.setState(nextState, () => {
+      this.draw();
+    });
+  }
+
+  /***************************************************
+   * 						PAPERJS METHODS                      *
+   ***************************************************/
+
   changeCurrentLayer(n) {
     if (!paper.project.layers[n]) {
       while (!paper.project.layers[n]) {
@@ -171,6 +242,10 @@ class RocadeViewer extends Component {
       paper.project.layers[n].activate;
     }
   }
+
+  /***************************************************
+   * 						DRAW PARTS METHODS                   *
+   ***************************************************/
 
   startDraw(isFirst) {
     // Setup the first drawing Get canvas and setup paperJs to
@@ -364,66 +439,9 @@ class RocadeViewer extends Component {
     }
   }
 
-  handleResize() {
-    this.setState({
-      mustRedraw: true
-    }, () => {
-      this.startDraw(false);
-    });
-  }
-
-  findDrawnPoint(point) {
-    let drawnPoints = this.state.drawnPoints;
-
-    if (!drawnPoints || !point) {
-      return null;
-    }
-
-    for (let p of drawnPoints) {
-      if (between(point.x, p.x - CIRCLE_RADIUS, p.x + CIRCLE_RADIUS) && between(point.y, p.y - CIRCLE_RADIUS, p.y + CIRCLE_RADIUS)) {
-        return p;
-      }
-    }
-
-    return null;
-  }
-
-  getBeginningOf(p) {
-    const {valuesCursor} = this.state;
-    const {data} = this.props;
-
-    let lastTime = 0;
-
-    if (!data || !data.parts || valuesCursor <= 0) {
-      return 0;
-    }
-
-    for (let c = 0; c < valuesCursor; c++) {
-      for (let part of data.parts[c].parts) {
-        if (part.partNumber === p.partNumber) {
-          if (part.trafficState === p.trafficState && lastTime === 0) {
-            lastTime = data.parts[c]._id;
-          } else if (part.trafficState !== p.trafficState) {
-            lastTime = 0;
-          }
-          break;
-        }
-      }
-
-    }
-
-    return lastTime;
-  }
-
-  setupMouse() {
-    let tool = new paper.Tool();
-
-    tool.onMouseDown = (event) => {
-      this.updateSelection(event.point);
-    };
-
-    tool.activate();
-  }
+  /***************************************************
+   * 						DRAW SELECTION METHODS               *
+   ***************************************************/
 
   updateSelection(point) {
     let p = this.findDrawnPoint(point);
@@ -462,6 +480,10 @@ class RocadeViewer extends Component {
     });
   }
 
+  /***************************************************
+   * 						RENDER METHODS                       *
+   ***************************************************/
+
   getInfosPosition() {
     if (!this.state.selectionInfos) {
       return undefined;
@@ -496,86 +518,24 @@ class RocadeViewer extends Component {
     return res;
   }
 
-  createPartInformations() {
-    const {selectionInfos, valuesCursor, currentDate} = this.state;
-
-    if (!selectionInfos) {
-      return undefined;
-    }
-
-    let style = this.getInfosPosition();
-
-    let traffic = undefined;
-
-    switch (selectionInfos.trafficState) {
-      case GREEN:
-        traffic = {
-          name: 'Fluide',
-          id: 'fluid'
-        };
-        break;
-      case ORANGE:
-        traffic = {
-          name: 'Dense',
-          id: 'dense'
-        };
-        break;
-      case RED:
-        traffic = {
-          name: 'Saturé',
-          id: 'saturated'
-        };
-        break;
-      case BLACK:
-        traffic = {
-          name: 'Bloqué',
-          id: 'blocked'
-        };
-        break;
-      default:
-        traffic = {
-          name: 'Non disponible',
-          id: 'notFound'
-        };
-        break;
-    }
-
-    traffic.id += ' stateText';
-
-    if (selectionInfos.beginning !== undefined && valuesCursor > 0) {
-      if (selectionInfos.beginning !== 0) {
-        let d = dateDifference(selectionInfos.beginning, currentDate) / (MS_IN_MINUTES);
-
-        traffic.beginning = ' depuis ' + Math.round(d) + ' minutes';
-      } else {
-        traffic.beginning = ' (début)';
-      }
-    }
-
-    return (
-      <div style={style} id="partInformations">
-        Portion n°{selectionInfos.partNumber}
-        <div className="description">
-          Traffic :&nbsp;
-          <span className={traffic.id}>{traffic.name}</span>{traffic.beginning}<br/>
-          <a href="#">Voir l'historique</a>
-          <div
-            className="close"
-            onClick={() => this.cleanSelection()}>Fermer</div>
-        </div>
-      </div>
-    );
-  }
-
   render() {
     const {data} = this.props;
-    const {currentDate} = this.state;
+    const {currentDate, selectionInfos} = this.state;
 
-    let partInformations = this.createPartInformations();
+    let infoBubble = undefined;
+
+    if (selectionInfos) {
+      infoBubble = <InfoBubble
+        onClose={() => this.cleanSelection()}
+        selectionInfos={selectionInfos}
+        currentDate={currentDate}
+        position={this.getInfosPosition()}/>;
+    }
 
     return (
       <div id="c-rocadeViewer">
-        <canvas id="rocade-canvas" data-paper-resize/> {partInformations}
+        <canvas id="rocade-canvas" data-paper-resize/>
+        {infoBubble}
 
         <div id="rocadeInfos">
           <DateSlider
