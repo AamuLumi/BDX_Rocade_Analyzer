@@ -26,6 +26,8 @@ const PADDING_INFOS = 15;
 const LAYER_PARTS = 0;
 const LAYER_SELECTION = 1;
 
+const MS_IN_MINUTES = 60 * 1000;
+
 function getColorForTraffic(c) {
   switch (c) {
     case GREEN:
@@ -77,6 +79,10 @@ function createPointInPath(path, x, y, color) {
 
 function between(i, min, max) {
   return i >= min && i <= max;
+}
+
+function dateDifference(d1, d2) {
+  return new Date(d2).getTime() - new Date(d1).getTime();
 }
 
 class RocadeViewer extends Component {
@@ -156,9 +162,9 @@ class RocadeViewer extends Component {
     }
   }
 
-  changeCurrentLayer(n){
-    if (!paper.project.layers[n]){
-      while (!paper.project.layers[n]){
+  changeCurrentLayer(n) {
+    if (!paper.project.layers[n]) {
+      while (!paper.project.layers[n]) {
         let l = new paper.Layer();
       }
     } else {
@@ -350,7 +356,9 @@ class RocadeViewer extends Component {
       paper.view.update(true);
 
       // Update drawnPoints
-      this.setState({drawnPoints: drawnPoints}, () => {
+      this.setState({
+        drawnPoints: drawnPoints
+      }, () => {
         this.updateSelection(this.state.selectionInfos);
       });
     }
@@ -380,6 +388,33 @@ class RocadeViewer extends Component {
     return null;
   }
 
+  getBeginningOf(p) {
+    const {valuesCursor} = this.state;
+    const {data} = this.props;
+
+    let lastTime = 0;
+
+    if (!data || !data.parts || valuesCursor <= 0) {
+      return 0;
+    }
+
+    for (let c = 0; c < valuesCursor; c++) {
+      for (let part of data.parts[c].parts) {
+        if (part.partNumber === p.partNumber) {
+          if (part.trafficState === p.trafficState && lastTime === 0) {
+            lastTime = data.parts[c]._id;
+          } else if (part.trafficState !== p.trafficState) {
+            lastTime = 0;
+          }
+          break;
+        }
+      }
+
+    }
+
+    return lastTime;
+  }
+
   setupMouse() {
     let tool = new paper.Tool();
 
@@ -390,7 +425,7 @@ class RocadeViewer extends Component {
     tool.activate();
   }
 
-  updateSelection(point){
+  updateSelection(point) {
     let p = this.findDrawnPoint(point);
 
     if (!p) {
@@ -404,6 +439,9 @@ class RocadeViewer extends Component {
     let selection = createCircle(p.x, p.y, getColorForTraffic(p.trafficState), SELECTION_RADIUS);
     selection.strokeColor = SELECTION_STROKE_COLOR;
     selection.strokeWidth = SELECTION_STROKE_WIDTH;
+
+    let beginning = this.getBeginningOf(p);
+    p.beginning = beginning;
 
     paper.view.update(true);
 
@@ -459,7 +497,7 @@ class RocadeViewer extends Component {
   }
 
   createPartInformations() {
-    const {selectionInfos} = this.state;
+    const {selectionInfos, valuesCursor, currentDate} = this.state;
 
     if (!selectionInfos) {
       return undefined;
@@ -504,17 +542,29 @@ class RocadeViewer extends Component {
 
     traffic.id += ' stateText';
 
-    return ( <div style={style} id="partInformations">
-      Portion n°{selectionInfos.partNumber}
-      <div className="description">
-        Traffic :&nbsp;
-        <span className={traffic.id}>{traffic.name}</span><br/>
-        <a href="#">Voir l'historique</a>
-        <div
-          className="close"
-          onClick={() => this.cleanSelection()}>Fermer</div>
+    if (selectionInfos.beginning !== undefined && valuesCursor > 0) {
+      if (selectionInfos.beginning !== 0) {
+        let d = dateDifference(selectionInfos.beginning, currentDate) / (MS_IN_MINUTES);
+
+        traffic.beginning = ' depuis ' + Math.round(d) + ' minutes';
+      } else {
+        traffic.beginning = ' (début)';
+      }
+    }
+
+    return (
+      <div style={style} id="partInformations">
+        Portion n°{selectionInfos.partNumber}
+        <div className="description">
+          Traffic :&nbsp;
+          <span className={traffic.id}>{traffic.name}</span>{traffic.beginning}<br/>
+          <a href="#">Voir l'historique</a>
+          <div
+            className="close"
+            onClick={() => this.cleanSelection()}>Fermer</div>
+        </div>
       </div>
-    </div> );
+    );
   }
 
   render() {
