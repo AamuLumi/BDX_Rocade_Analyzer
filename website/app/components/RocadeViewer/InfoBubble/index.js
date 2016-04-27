@@ -74,6 +74,8 @@ export default class InfoBubble extends Component {
       }
     }
 
+    let link = 'part/' + selectionInfos.partNumber;
+
     return (
       <div style={style} id="c-infoBubble">
         Portion n°{selectionInfos.partNumber}
@@ -85,7 +87,7 @@ export default class InfoBubble extends Component {
 
           {traffic.beginning}<br/>
 
-          <a href="#">Voir l'historique</a>
+          <a href={link}>Voir l'historique</a>
           <div className="close" onClick={onClose}>Fermer</div>
         </div>
       </div>

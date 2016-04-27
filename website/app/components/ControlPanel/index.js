@@ -6,7 +6,6 @@ import './ControlPanel.less';
 
 class ControlPanel extends Component {
   componentDidMount() {
-    this.props.fetchParts();
   }
 
   sendRequest() {

@@ -3,6 +3,7 @@
 // Imports
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
+import {fetchPartsIfNeeded} from '~/actions/Rocade';
 import Rocade from './Rocade';
 import DateSlider from './DateSlider';
 import ViewerLegend from './ViewerLegend';
@@ -201,6 +202,15 @@ class RocadeViewer extends Component {
 
       // Setup mouse interaction with canvas
       this.setupMouse();
+
+      // At mounting of new component, if there's no loaded data
+      // Load it
+      if (!this.props.data.lastUpdated) {
+        this.props.fetchParts();
+      } else { // Else, update component with available data
+        this.componentWillReceiveProps(this.props);
+      }
+
     });
   }
 
@@ -657,10 +667,7 @@ class RocadeViewer extends Component {
     paper.view.update(FORCE_PAPER_REDRAW);
 
     // Clean selection in state
-    this.setState({
-      selection: undefined,
-      selectionInfos: undefined
-    });
+    this.setState({selection: undefined, selectionInfos: undefined});
   }
 
   /***************************************************
@@ -758,4 +765,12 @@ const mapStateToProps = (state) => {
   return {data: state.loadParts};
 };
 
-export default connect(mapStateToProps)(RocadeViewer);
+const mapDispatchToProps = (dispatch) => {
+  return {
+    fetchParts: (request) => {
+      dispatch(fetchPartsIfNeeded(request));
+    }
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(RocadeViewer);

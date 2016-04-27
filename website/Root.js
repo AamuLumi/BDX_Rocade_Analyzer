@@ -4,17 +4,22 @@ import ReactDOM from 'react-dom';
 import {Router, Route, IndexRoute, browserHistory} from 'react-router';
 import App from './app';
 import {Provider} from 'react-redux';
+import PartViewer from './app/components/PartViewer';
+import RocadeViewer from './app/components/RocadeViewer';
 import Store from './reducers';
 
 export default class Root extends Component {
   render() {
     return (
       <Router history={browserHistory}>
-        <IndexRoute path="/" component={App}></IndexRoute>
+        <Route path="/" component={App}>
+          <IndexRoute component={RocadeViewer} />
+          <Route path="part/:id" component={PartViewer} />
+        </Route>
       </Router>
     );
   }
 }
 
 ReactDOM.render(
-  <Provider store={Store}><App/></Provider>, document.getElementById('app'));
+  <Provider store={Store}><Root/></Provider>, document.getElementById('app'));
