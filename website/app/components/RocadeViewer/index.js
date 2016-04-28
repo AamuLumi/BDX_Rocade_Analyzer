@@ -4,6 +4,7 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import {fetchPartsIfNeeded} from '~/actions/Rocade';
+import {loadViewer, saveViewer} from '~/actions/RocadeViewer';
 import Rocade from './Rocade';
 import DateSlider from './DateSlider';
 import ViewerLegend from './ViewerLegend';
@@ -146,6 +147,10 @@ function between(i, min, max) {
 }
 
 class RocadeViewer extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object.isRequired
+  }
+
   /**
    * Constructor of RocadeViewer
    * @param  {Array} props initial props of the component
@@ -223,6 +228,11 @@ class RocadeViewer extends Component {
     // Refresh props
     this.props = nextProps;
 
+    // Restore previous state if existing
+    if (this.props.viewer && this.props.viewer.lastUpdated){
+      this.setState(this.props.viewer);
+    }
+
     // Set the lastUpdated state
     let lastUpdated = this.props.data.lastUpdated;
 
@@ -259,6 +269,9 @@ class RocadeViewer extends Component {
     window.removeEventListener('resize', (e) => {
       this.handleResize(e);
     });
+
+    // Save current state to reload it
+    this.props.saveViewer(this.state);
   }
 
   /**
@@ -762,13 +775,16 @@ class RocadeViewer extends Component {
 
 // Connect to the store
 const mapStateToProps = (state) => {
-  return {data: state.loadParts};
+  return {data: state.loadParts, viewer: state.getViewer};
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
     fetchParts: (request) => {
       dispatch(fetchPartsIfNeeded(request));
+    },
+    saveViewer: (state) => {
+      dispatch(saveViewer(state));
     }
   };
 };

@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import {Link} from 'react-router';
 import './InfoBubble.less';
 
 const GREEN = 0;
@@ -87,7 +88,7 @@ export default class InfoBubble extends Component {
 
           {traffic.beginning}<br/>
 
-          <a href={link}>Voir l'historique</a>
+          <Link to={link}>Voir l'historique</Link>
           <div className="close" onClick={onClose}>Fermer</div>
         </div>
       </div>
