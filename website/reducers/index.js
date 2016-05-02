@@ -6,9 +6,16 @@ import {
 import thunkMiddleware from 'redux-thunk';
 
 import {
-    loadParts
+    partsByDate,
+    partsByPart
 } from './Rocade';
 
+import {
+  getViewer
+} from './RocadeViewer';
+
 export default createStore(combineReducers({
-    loadParts
+    partsByDate,
+    partsByPart,
+    getViewer
 }), applyMiddleware(thunkMiddleware));

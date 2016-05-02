@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import {fetchPartsIfNeeded} from '~/actions/Rocade';
+import {fetchPartsByDateIfNeeded} from '~/actions/Rocade';
 import PeriodPicker from './PeriodPicker';
 import './ControlPanel.less';
 
@@ -29,7 +29,7 @@ class ControlPanel extends Component {
 const mapDispatchToProps = (dispatch) => {
   return {
     fetchParts: (request) => {
-      dispatch(fetchPartsIfNeeded(request));
+      dispatch(fetchPartsByDateIfNeeded(request));
     }
   };
 };

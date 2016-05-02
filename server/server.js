@@ -97,6 +97,8 @@ function parseDateForRequest(req) {
 
         date.$gte = Date.parse(req.body.until).addHours(-
             period);
+    } else if ('period' in req.body){
+        date.$gte = new Date().addHours(-req.body.period);
     }
 
     return date;
@@ -104,6 +106,8 @@ function parseDateForRequest(req) {
 
 function searchAndParse(res, searchRequest, GROUP_BY) {
     let pipeline = [];
+
+    console.log(searchRequest);
 
     if (searchRequest) {
         pipeline.push({
