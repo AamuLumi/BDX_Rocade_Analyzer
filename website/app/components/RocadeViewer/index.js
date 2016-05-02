@@ -3,7 +3,7 @@
 // Imports
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import {fetchPartsIfNeeded} from '~/actions/Rocade';
+import {fetchPartsByDateIfNeeded} from '~/actions/Rocade';
 import {loadViewer, saveViewer} from '~/actions/RocadeViewer';
 import Rocade from './Rocade';
 import DateSlider from './DateSlider';
@@ -229,35 +229,39 @@ class RocadeViewer extends Component {
     this.props = nextProps;
 
     // Restore previous state if existing
-    if (this.props.viewer && this.props.viewer.lastUpdated){
-      this.setState(this.props.viewer);
-    }
-
-    // Set the lastUpdated state
-    let lastUpdated = this.props.data.lastUpdated;
-
-    // If there's data and this is différent from last loaded
-    // datas
-    if (lastUpdated && lastUpdated !== this.state.lastUpdated) {
-      // Setup the date slider to the first value
-      this.refs.dateSlider.setValue(0);
-
-      // Compute the next state of component
-      let nextState = {
-        lastUpdated: lastUpdated,
-        valuesCursor: 0
-      };
-
-      // If there's parts in data
-      if (this.props.data.parts.length <= 0) {
-        // Setup something to say no date is found
-        nextState.currentDate = undefined;
-      }
-
-      // Set new state, and re-draw after
-      this.setState(nextState, () => {
-        this.startDraw(FULL_REDRAW);
+    if (this.props.viewer && this.props.viewer.lastUpdated) {
+      this.setState(this.props.viewer, () => {
+        this.refs.dateSlider.setValue(this.state.valuesCursor);
+        this.changeDate(this.state.valuesCursor);
       });
+    } else {
+
+      // Set the lastUpdated state
+      let lastUpdated = this.props.data.lastUpdated;
+
+      // If there's data and this is différent from last loaded
+      // datas
+      if (lastUpdated && lastUpdated !== this.state.lastUpdated) {
+        // Setup the date slider to the first value
+        this.refs.dateSlider.setValue(0);
+
+        // Compute the next state of component
+        let nextState = {
+          lastUpdated: lastUpdated,
+          valuesCursor: 0
+        };
+
+        // If there's parts in data
+        if (this.props.data.parts.length <= 0) {
+          // Setup something to say no date is found
+          nextState.currentDate = undefined;
+        }
+
+        // Set new state, and re-draw after
+        this.setState(nextState, () => {
+          this.startDraw(FULL_REDRAW);
+        });
+      }
     }
   }
 
@@ -775,13 +779,13 @@ class RocadeViewer extends Component {
 
 // Connect to the store
 const mapStateToProps = (state) => {
-  return {data: state.loadParts, viewer: state.getViewer};
+  return {data: state.partsByDate, viewer: state.getViewer};
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
     fetchParts: (request) => {
-      dispatch(fetchPartsIfNeeded(request));
+      dispatch(fetchPartsByDateIfNeeded(request));
     },
     saveViewer: (state) => {
       dispatch(saveViewer(state));
