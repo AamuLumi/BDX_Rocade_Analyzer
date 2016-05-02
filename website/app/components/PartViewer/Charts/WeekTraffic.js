@@ -2,13 +2,12 @@ import React, {Component} from 'react';
 import BasicChart from './BasicChart';
 import {AreaChart} from 'rd3';
 
-const INTERVAL_HOURS = 6;
 const MAX_TRAFFIC = 3;
 
-const STEP_FEW_DATAS = 7;
-const STEP_MID_DATAS = 40;
+// 6 datas corrsponds to 6*5min=30minutes
+const NB_DATAS_PER_RES = 4;
 
-export default class HistoryTraffic extends BasicChart {
+export default class WeekTraffic extends BasicChart {
   componentWillMount() {
     this.computeChartData();
   }
@@ -22,22 +21,28 @@ export default class HistoryTraffic extends BasicChart {
   computeChartData() {
     let {data, id} = this.props;
 
-    if (!data || !data.parts) {
+    if (!data || !data.parts || !data.parts[0]) {
       return undefined;
     }
 
     let res = [];
+    let currentEntry = 0;
+    let averageTraffic = 0;
 
-    for (let c of data.parts) {
-      for (let part of c.parts) {
-        if (part.partNumber === id) {
-          res.push({
-            x: new Date(c._id),
-            y: part.trafficState
-          });
-          break;
-        }
+    for (let entry of data.parts[0].dates) {
+      if (currentEntry % NB_DATAS_PER_RES === 0) {
+        res.push({
+          x: new Date(entry.date),
+          y: averageTraffic / NB_DATAS_PER_RES
+        });
+        currentEntry = 0;
+        averageTraffic = 0;
       }
+
+      averageTraffic += entry.trafficState;
+
+      currentEntry++;
+
     }
 
     this.setState({
@@ -55,40 +60,29 @@ export default class HistoryTraffic extends BasicChart {
     });
   }
 
-  calcXInterval(callback){
-    let {entriesLength} = this.state;
-
+  calcXInterval(callback) {
     let xTickInterval = {
-      unit: 'hour',
+      unit: 'day',
       interval: 1
     };
 
-    if (entriesLength < STEP_FEW_DATAS){
-      xTickInterval = {
-        unit : 'minute',
-        interval: 5
-      };
-    } else if (entriesLength < STEP_MID_DATAS){
-      xTickInterval = {
-        unit : 'minute',
-        interval: 15
-      };
-    }
-
-    this.setState({xTickInterval: xTickInterval}, () => {
+    this.setState({
+      xTickInterval: xTickInterval
+    }, () => {
       callback();
     });
   }
 
   render() {
+    let {size} = this.props;
     let {chartData, xTickInterval} = this.state;
 
-    console.log(this.props.size);
+    console.log(chartData);
 
     return (
-      <div id="c-historyTraffic" className="basicChart">
+      <div id="c-weekTraffic" className="basicChart">
         <div className="title">
-          Etat du traffic sur la portion actuelle
+          Etat du traffic sur la semaine
         </div>
         <AreaChart
           data={chartData}

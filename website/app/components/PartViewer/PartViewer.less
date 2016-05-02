@@ -1,13 +1,23 @@
-#c-partViewer{
-    height: 100%;
+#c-partViewer {
+    margin: 2.5vh 20px;
     width: 100%;
-    margin: 16px 20px;
+    height: 95vh;
     font-family: Arial;
-    .title {
-      font-size: 1.5em;
-      a {
-        text-decoration: none;
-        color: black;
-      }
+    .container {
+        .header {
+            height: 70px;
+            .title {
+                font-size: 1.5em;
+                .backButton {
+                    cursor: pointer;
+                    text-decoration: none;
+                    color: black;
+                    vertical-align: top;
+                }
+            }
+        }
+        #charts {
+            height: 85%;
+        }
     }
 }

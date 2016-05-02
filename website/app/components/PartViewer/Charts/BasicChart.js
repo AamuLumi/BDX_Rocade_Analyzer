@@ -1,4 +1,7 @@
 import React, {Component} from 'react';
+import './BasicChart.less';
+
+const TITLE_HEIGHT = 72;
 
 export default class BasicChart extends Component {
   static propTypes = {
@@ -12,11 +15,36 @@ export default class BasicChart extends Component {
 
     this.state = {
       entriesLength: 0,
-      chartData: undefined
+      chartData: [
+        {
+          name: 'trafficState',
+          values: []
+        }
+      ],
+      xTickInterval : {
+        unit: 'hour',
+        interval: 1
+      }
     };
   }
 
   getXInterval(){
     return this.state.entriesLength;
+  }
+
+  getWidth(){
+    if (this.props.size.width){
+      return this.props.size.width;
+    }
+
+    return 0;
+  }
+
+  getHeight(){
+    if (this.props.size.height){
+      return this.props.size.height - TITLE_HEIGHT;
+    }
+
+    return 0;
   }
 }
