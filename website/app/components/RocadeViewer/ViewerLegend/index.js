@@ -1,8 +1,13 @@
+// Imports
 import React, {Component} from 'react';
 import Rocade from '~/conf/Rocade';
 import './ViewerLegend.less';
 
 export default class ViewerLegend extends Component {
+  /**
+   * Render the component
+   * @return {Object} the component
+   */
   render() {
     return (
       <div id="c-viewerLegend">
@@ -14,7 +19,7 @@ export default class ViewerLegend extends Component {
                 <div
                   className="legendCircle"
                   style={{
-                  'background-color': e.color
+                  'backgroundColor': e.color
                 }}></div>
               {e.description}
               </div>
