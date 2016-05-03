@@ -1,11 +1,8 @@
+// Imports
 import React, {Component} from 'react';
 import {Link} from 'react-router';
+import Rocade from '~/conf/Rocade';
 import './InfoBubble.less';
-
-const GREEN = 0;
-const ORANGE = 1;
-const RED = 2;
-const BLACK = 3;
 
 const MS_IN_SECONDES = 1000;
 const SECONDES_IN_MINUTES = 60;
@@ -28,42 +25,9 @@ export default class InfoBubble extends Component {
 
     let style = position;
 
-    let traffic = undefined;
+    let traffic = Rocade.trafficState[selectionInfos.trafficState+1];
 
-    switch (selectionInfos.trafficState) {
-      case GREEN:
-        traffic = {
-          name: 'Fluide',
-          id: 'fluid'
-        };
-        break;
-      case ORANGE:
-        traffic = {
-          name: 'Dense',
-          id: 'dense'
-        };
-        break;
-      case RED:
-        traffic = {
-          name: 'Saturé',
-          id: 'saturated'
-        };
-        break;
-      case BLACK:
-        traffic = {
-          name: 'Bloqué',
-          id: 'blocked'
-        };
-        break;
-      default:
-        traffic = {
-          name: 'Non disponible',
-          id: 'notFound'
-        };
-        break;
-    }
-
-    traffic.id += ' stateText';
+    traffic.id = traffic.name + ' stateText';
 
     if (selectionInfos.beginning !== undefined) {
       if (selectionInfos.beginning !== 0) {
@@ -83,7 +47,7 @@ export default class InfoBubble extends Component {
         <div className="description">
           Traffic :&nbsp;
           <span className={traffic.id}>
-            {traffic.name}
+            {traffic.description}
           </span>
 
           {traffic.beginning}<br/>

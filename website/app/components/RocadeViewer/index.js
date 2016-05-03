@@ -48,18 +48,7 @@ const LAYER_SELECTION = 1;
  * @return {String}   the CSS color
  */
 function getColorForTraffic(t) {
-  switch (t) {
-    case GREEN:
-      return '#2196F3';
-    case ORANGE:
-      return '#FB8C00';
-    case RED:
-      return '#F44336';
-    case BLACK:
-      return 'black';
-    default:
-      return '#EEEEEE';
-  }
+  return Rocade.trafficState[t+1].color;
 }
 
 /**
