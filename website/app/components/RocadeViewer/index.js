@@ -11,12 +11,6 @@ import ViewerLegend from './ViewerLegend';
 import InfoBubble from './InfoBubble';
 import './RocadeViewer.less';
 
-// Constants for color associated to traffic
-const GREEN = 0;
-const ORANGE = 1;
-const RED = 2;
-const BLACK = 3;
-
 // Constants for not found value in search functions
 const NOT_FOUND = -1;
 
@@ -328,6 +322,7 @@ class RocadeViewer extends Component {
         if (part.partNumber === p.partNumber) {
           // If it has the same traffic state -> memorize date
           if (part.trafficState === p.trafficState) {
+            console.log('same');
             lastTime = data.parts[c]._id;
           } else {
             // Else it's a differente traffic state, so return the last
