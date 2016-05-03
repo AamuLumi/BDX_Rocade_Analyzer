@@ -20,8 +20,8 @@ export default class PeriodPicker extends Component {
     // Search additional states in options
     for (let optionGroup of Object.keys(Options)) {
       for (let option of Options[optionGroup].options) {
-        // For each option state, add it to initialState
-        //  and inputStates
+        // For each option state, add it to initialState  and
+        // inputStates
         initialState[option.state] = false;
         initialState.inputStates.push(option.state);
       }
@@ -80,8 +80,8 @@ export default class PeriodPicker extends Component {
     // Variables to add more lisibility
     const {state, refs} = this;
 
-    // For each option, compute a field in request if
-    //  state is enabled and there's value
+    // For each option, compute a field in request if  state is
+    // enabled and there's value
     for (let o of options) {
       if (state[o.state] && refs[o.name].value) {
         req[o.name] = refs[o.name].value;
@@ -120,13 +120,14 @@ export default class PeriodPicker extends Component {
                     checked={this.state[opt.state]}
                     onChange={() => this.switchState(opt.state)}/> {opt.textAfterCheckbox}
                 </div>
-
-                <input
-                  type={opt.inputType}
-                  ref={opt.name}
-                  min={opt.min}
-                  defaultValue={opt.defaultValue}
-                  disabled={!this.state[opt.state]}/> {opt.textAfterInput}
+                <div className="inputContainer">
+                  <input
+                    type={opt.inputType}
+                    ref={opt.name}
+                    min={opt.min}
+                    defaultValue={opt.defaultValue}
+                    disabled={!this.state[opt.state]}/> {opt.textAfterInput}
+                </div>
               </div>
             );
           })}
