@@ -4,8 +4,8 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import {fetchPartsByDateIfNeeded} from '~/actions/Rocade';
-import {loadViewer, saveViewer} from '~/actions/RocadeViewer';
-import Rocade from './Rocade';
+import {saveViewer} from '~/actions/RocadeViewer';
+import Rocade from '~/conf/Rocade';
 import DateSlider from './DateSlider';
 import ViewerLegend from './ViewerLegend';
 import InfoBubble from './InfoBubble';
