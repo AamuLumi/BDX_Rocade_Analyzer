@@ -21,6 +21,7 @@
     "babel-preset-react": "^6.5.0",
     "babel-preset-stage-1": "^6.5.0",
     "body-parser": "^1.14.2",
+    "compression": "^1.6.1",
     "console-stamp": "^0.2.0",
     "d3": "^3.5.16",
     "datejs": "0.0.2",

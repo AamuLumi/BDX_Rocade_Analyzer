@@ -5,7 +5,8 @@ require('datejs');
 
 let express = require('express'),
     app = express(),
-    bodyParser = require('body-parser');
+    bodyParser = require('body-parser'),
+    compression = require('compression');
 
 let mongoose = require('mongoose'),
     PartEntry = require('./PartEntry');
@@ -37,6 +38,9 @@ app.use(bodyParser.urlencoded({
     extended: false
 }));
 app.use(bodyParser.json());
+
+// GZIP compression of body
+app.use(compression());
 
 app.use(function(req, res, next) {
     res.header('Access-Control-Allow-Origin',
@@ -106,8 +110,6 @@ function parseDateForRequest(req) {
 
 function searchAndParse(res, searchRequest, GROUP_BY) {
     let pipeline = [];
-
-    console.log(searchRequest);
 
     if (searchRequest) {
         pipeline.push({
@@ -203,47 +205,6 @@ app.post('/searchByDate', (req, res) => {
 app.post('/searchByPart', (req, res) => {
     searchAndParse(res, computeRequest(req), GROUP_BY_PART);
 });
-
-
-//
-// // Get all entries
-// app.get('/all', (req, res) => {
-//     searchAndParse(res, null, GROUP_BY_DATE);
-// });
-//
-// // Get entries since a specific date
-// app.get('/since/:date', (req, res) => {
-//     let d = new Date(req.params.date);
-//
-//     if (!isValidDate(d)) {
-//         res.status(CODE_INVALID).send('Invalid Date');
-//     } else {
-//         PartEntry.find({
-//                 date: {
-//                     $gte: d
-//                 }
-//             }).select('date trafficState partNumber')
-//             .then((entries) => {
-//                 res.status(CODE_SUCCESS).send(
-//                     parseEntriesByDate(entries));
-//             }, (err) => {
-//                 res.status(CODE_ERROR).send(err);
-//             });
-//     }
-// });
-//
-// // Get entries for part p
-// app.get('/part/:part', (req, res) => {
-//     PartEntry.find({
-//             partNumber: req.params.part
-//         }).select('date trafficState partNumber')
-//         .then((entries) => {
-//             res.status(CODE_SUCCESS).send(
-//                 parseEntriesByDate(entries));
-//         }, (err) => {
-//             res.status(CODE_ERROR).send(err);
-//         });
-// });
 
 app.listen(PORT, () => {
     console.log('> Server is ready !');
