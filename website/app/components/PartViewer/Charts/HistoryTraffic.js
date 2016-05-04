@@ -83,8 +83,6 @@ export default class HistoryTraffic extends BasicChart {
   render() {
     let {chartData, xTickInterval} = this.state;
 
-    console.log(this.props.size);
-
     return (
       <div id="c-historyTraffic" className="basicChart">
         <div className="title">

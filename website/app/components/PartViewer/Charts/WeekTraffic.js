@@ -62,8 +62,6 @@ export default class WeekTraffic extends BasicChart {
       });
     }
 
-    console.log(data.parts[0].dates);
-
     for (let entry of data.parts[0].dates) {
       currentDate = new Date(entry.date);
       noDataLost = (lastDate.getTime() + PERIOD_DATA * MS_IN_MINUTES) - currentDate.getTime() > 0;
@@ -84,7 +82,6 @@ export default class WeekTraffic extends BasicChart {
           x: lastDate,
           y: averageTraffic / currentEntry
         });
-        console.log(averageTraffic / currentEntry);
         unavailableTraffic.push({x: lastDate, y: 0});
         // We "reset" the res chart with adding the 0 value,
         //  and we show the data not found with adding the 3 value
