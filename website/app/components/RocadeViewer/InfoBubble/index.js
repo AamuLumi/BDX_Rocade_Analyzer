@@ -69,7 +69,7 @@ export default class InfoBubble extends Component {
 
     // Setup id of component, and beginning string
     traffic.id = traffic.name + ' stateText';
-    traffic.beginning = this.getStringSince();
+    traffic.beginning = this.computeStringSince();
 
     // Setup link to see details on component
     let link = 'part/' + selectionInfos.partNumber;
