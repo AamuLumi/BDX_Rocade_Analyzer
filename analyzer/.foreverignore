@@ -1,5 +1,8 @@
 .git
 .gitignore
 .foreverignore
+BRA_ANA_err.log
+BRA_ANA_out.log
+BRA_ANA_forever.log
 analyzer/in.png
 analyzer/out.png

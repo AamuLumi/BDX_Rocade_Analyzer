@@ -1,7 +1,7 @@
 // Imports
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import {loadDataForViewer} from '~/actions/Data';
+import {loadDataForViewer} from '~/app/actions/Data';
 import PeriodPicker from './PeriodPicker';
 import './ControlPanel.less';
 

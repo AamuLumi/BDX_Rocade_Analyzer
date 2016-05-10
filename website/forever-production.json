@@ -1,8 +1,8 @@
 [
   {
-    "uid" : "BRA - Website Dev",
+    "uid" : "BRA - Website Prod",
     "append" : "true",
-    "script" : "webserver.js",
+    "script" : "server.js",
     "logFile": "BRA_WEB_forever.log",
     "outFile": "BRA_WEB_out.log",
     "errFile": "BRA_WEB_err.log"

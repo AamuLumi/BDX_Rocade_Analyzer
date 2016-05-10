@@ -1,3 +1,6 @@
 .git
 .gitignore
 .foreverignore
+BRA_WEB_err.log
+BRA_WEB_out.log
+BRA_WEB_forever.log

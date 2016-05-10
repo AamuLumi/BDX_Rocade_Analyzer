@@ -1,6 +1,6 @@
 // Imports
 import React, {Component} from 'react';
-import Options from '~/conf/PeriodPickerOptions';
+import Options from '~/app/conf/PeriodPickerOptions';
 import './PeriodPicker.less';
 
 export default class PeriodPicker extends Component {

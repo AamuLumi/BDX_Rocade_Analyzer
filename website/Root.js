@@ -6,7 +6,7 @@ import App from './app';
 import {Provider} from 'react-redux';
 import PartViewer from './app/components/PartViewer';
 import RocadeViewer from './app/components/RocadeViewer';
-import Store from './reducers';
+import Store from './app/reducers';
 
 export default class Root extends Component {
   render() {

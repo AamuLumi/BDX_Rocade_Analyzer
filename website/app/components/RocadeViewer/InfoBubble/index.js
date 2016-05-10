@@ -1,7 +1,7 @@
 // Imports
 import React, {Component} from 'react';
 import {Link} from 'react-router';
-import Rocade from '~/conf/Rocade';
+import Rocade from '~/app/conf/Rocade';
 import './InfoBubble.less';
 
 // Time constants

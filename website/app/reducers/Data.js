@@ -5,7 +5,7 @@ import {
     UPCHART_LOADED,
     DOWNCHART_LOADING,
     DOWNCHART_LOADED
-} from '~/actions/Data';
+} from '~/app/actions/Data';
 
 function data(state = {
     isFetching: false,

@@ -1,7 +1,7 @@
 import {
     SAVE_VIEWER,
     LOAD_VIEWER
-} from '~/actions/RocadeViewer';
+} from '~/app/actions/RocadeViewer';
 
 export function getViewer(state = {}, action){
   switch(action.type){

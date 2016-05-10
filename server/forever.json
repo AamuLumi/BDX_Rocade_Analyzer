@@ -5,6 +5,9 @@
     "watch" : "true",
     "script" : "server.js",
     "sourceDir" : "server/",
-    "workingDir" : "server/"
+    "workingDir" : "server/",
+    "logFile": "server/BRA_API_forever.log",
+    "outFile": "server/BRA_API_out.log",
+    "errFile": "server/BRA_API_err.log"
   }
 ]

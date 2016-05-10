@@ -1,4 +1,7 @@
 .git
 .gitignore
 .foreverignore
+BRA_API_err.log
+BRA_API_out.log
+BRA_API_forever.log
 db/

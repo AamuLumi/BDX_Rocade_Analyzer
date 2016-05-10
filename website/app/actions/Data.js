@@ -1,5 +1,5 @@
 import fetch from 'isomorphic-fetch';
-import DateStorage from '~/tools/DateStorage';
+import DateStorage from '~/app/tools/DateStorage';
 
 export const VIEWER_LOADING = 'VIEWER_LOADING';
 export const VIEWER_LOADED = 'VIEWER_LOADED';

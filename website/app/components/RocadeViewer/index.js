@@ -3,9 +3,9 @@
 // Imports
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import {loadDataForViewer} from '~/actions/Data';
-import {saveViewer} from '~/actions/RocadeViewer';
-import Rocade from '~/conf/Rocade';
+import {loadDataForViewer} from '~/app/actions/Data';
+import {saveViewer} from '~/app/actions/RocadeViewer';
+import Rocade from '~/app/conf/Rocade';
 import DateSlider from './DateSlider';
 import ViewerLegend from './ViewerLegend';
 import InfoBubble from './InfoBubble';

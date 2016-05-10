@@ -1,6 +1,6 @@
 // Imports
 import React, {Component} from 'react';
-import Rocade from '~/conf/Rocade';
+import Rocade from '~/app/conf/Rocade';
 import './ViewerLegend.less';
 
 export default class ViewerLegend extends Component {

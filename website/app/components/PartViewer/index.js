@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {Link} from 'react-router';
 import {connect} from 'react-redux';
-import {loadDataForUpChart, loadDataForDownChart} from '~/actions/Data';
+import {loadDataForUpChart, loadDataForDownChart} from '~/app/actions/Data';
 import Charts from './Charts';
 import ChartSelector from './ChartSelector';
 
