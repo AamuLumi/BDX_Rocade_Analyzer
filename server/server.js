@@ -11,6 +11,8 @@ let express = require('express'),
 let mongoose = require('mongoose'),
     PartEntry = require('./PartEntry');
 
+let conf = require('./conf');
+
 // Default period of entries selection (in hours)
 let defaultPeriod = 6;
 
@@ -44,7 +46,7 @@ app.use(compression());
 
 app.use(function(req, res, next) {
     res.header('Access-Control-Allow-Origin',
-        'http://localhost:9901');
+        conf.url);
     res.header('Access-Control-Allow-Methods',
         'GET, POST');
     res.header('Access-Control-Allow-Headers',
