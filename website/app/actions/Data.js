@@ -1,5 +1,6 @@
 import fetch from 'isomorphic-fetch';
 import DateStorage from '~/app/tools/DateStorage';
+import Server from '~/app/tools/Server';
 
 export const VIEWER_LOADING = 'VIEWER_LOADING';
 export const VIEWER_LOADED = 'VIEWER_LOADED';
@@ -8,7 +9,7 @@ export const UPCHART_LOADED = 'UPCHART_LOADED';
 export const DOWNCHART_LOADING = 'DOWNCHART_LOADING';
 export const DOWNCHART_LOADED = 'DOWNCHART_LOADED';
 
-const url = 'http://localhost:9900/searchByPart';
+const url = Server.url + '/searchByPart';
 
 function fetchDatas(req, missingReq, actions, requestFn) {
     let body = JSON.stringify(missingReq);
