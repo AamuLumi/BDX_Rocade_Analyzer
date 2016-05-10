@@ -1,6 +1,6 @@
 import fetch from 'isomorphic-fetch';
 import DateStorage from '~/app/tools/DateStorage';
-import Server from '~/app/tools/Server';
+import Server from '~/app/conf/Server';
 
 export const VIEWER_LOADING = 'VIEWER_LOADING';
 export const VIEWER_LOADED = 'VIEWER_LOADED';
