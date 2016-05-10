@@ -276,7 +276,7 @@ export default class DateStorage {
 
         let currentDate = new Date();
         let pastDate = new Date(currentDate.getTime() -
-            DEFAULT_PERIOD * MS_IN_HOURS);
+            (DEFAULT_PERIOD-1) * MS_IN_HOURS);
 
         let begin = {
             year: 2016,
@@ -306,8 +306,9 @@ export default class DateStorage {
             begin.month, begin.day,
             begin.hour);
 
-        let tmpBegin = new Date(beginDate.getTime() + period *
-            MS_IN_HOURS);
+        // 1+period and -1 is to get the end of the current hour
+        let tmpBegin = new Date(beginDate.getTime() + (1+period) *
+            MS_IN_HOURS -1);
 
         let end = {
             year: 2016,
