@@ -37,7 +37,7 @@ export default class PeriodPicker extends Component {
    */
   switchState(key) {
     // Get states
-    const {inputStates, configuration} = this.state.inputStates;
+    const {inputStates, configuration} = this.state;
 
     // Variable whick contains maximum options enabled
     // simultaneously

@@ -5,9 +5,10 @@ const TITLE_HEIGHT = 72;
 
 export default class BasicChart extends Component {
   static propTypes = {
-    data: React.PropTypes.object.isRequired,
+    data: React.PropTypes.array.isRequired,
     id: React.PropTypes.number.isRequired,
-    size: React.PropTypes.object.isRequired
+    size: React.PropTypes.object.isRequired,
+    getData: React.PropTypes.func.isRequired
   }
 
   constructor(props) {
@@ -26,6 +27,14 @@ export default class BasicChart extends Component {
         interval: 1
       }
     };
+  }
+
+  componentWillMount(){
+    this.getData();
+  }
+
+  getData(){
+    return;
   }
 
   getXInterval(){

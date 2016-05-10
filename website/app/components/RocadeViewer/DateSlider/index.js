@@ -11,7 +11,7 @@ export default class DateSlider extends Component {
     // Initial value of the slider
     initial: React.PropTypes.number,
     // Current loaded date
-    date: React.PropTypes.string
+    date: React.PropTypes.object
   };
 
   /**
@@ -25,11 +25,8 @@ export default class DateSlider extends Component {
       return 'Pas d\'entrées trouvées';
     }
 
-    // Create a the date
-    let oDate = new Date(date);
-
     // Return the local date in String format
-    return oDate.toLocaleString();
+    return date.toLocaleString();
   }
 
   /**

@@ -10,6 +10,7 @@ const STEP_MID_DATAS = 40;
 
 export default class HistoryTraffic extends BasicChart {
   componentWillMount() {
+    super.componentWillMount();
     this.computeChartData();
   }
 
@@ -19,25 +20,26 @@ export default class HistoryTraffic extends BasicChart {
     this.computeChartData();
   }
 
+  getData() {
+    let currentDate = new Date();
+    let currentDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+    this.props.getData({'since': currentDay, 'period': currentDate.getHours()});
+  }
+
   computeChartData() {
     let {data, id} = this.props;
 
-    if (!data || !data.parts) {
+    if (!data) {
       return undefined;
     }
 
     let res = [];
 
-    for (let c of data.parts) {
-      for (let part of c.parts) {
-        if (part.partNumber === id) {
-          res.push({
-            x: new Date(c._id),
-            y: part.trafficState
-          });
-          break;
-        }
-      }
+    for (let entry of data) {
+      res.push({
+        x: new Date(entry.d),
+        y: entry.p[id]
+      });
     }
 
     this.setState({
@@ -55,7 +57,7 @@ export default class HistoryTraffic extends BasicChart {
     });
   }
 
-  calcXInterval(callback){
+  calcXInterval(callback) {
     let {entriesLength} = this.state;
 
     let xTickInterval = {
@@ -63,19 +65,21 @@ export default class HistoryTraffic extends BasicChart {
       interval: 1
     };
 
-    if (entriesLength < STEP_FEW_DATAS){
+    if (entriesLength < STEP_FEW_DATAS) {
       xTickInterval = {
-        unit : 'minute',
+        unit: 'minute',
         interval: 5
       };
-    } else if (entriesLength < STEP_MID_DATAS){
+    } else if (entriesLength < STEP_MID_DATAS) {
       xTickInterval = {
-        unit : 'minute',
+        unit: 'minute',
         interval: 15
       };
     }
 
-    this.setState({xTickInterval: xTickInterval}, () => {
+    this.setState({
+      xTickInterval: xTickInterval
+    }, () => {
       callback();
     });
   }

@@ -14,8 +14,19 @@ import {
   getViewer
 } from './RocadeViewer';
 
+import {
+  data,
+  viewerData,
+  upChartData,
+  downChartData
+} from './Data';
+
 export default createStore(combineReducers({
     partsByDate,
     partsByPart,
-    getViewer
+    getViewer,
+    data,
+    viewerData,
+    upChartData,
+    downChartData
 }), applyMiddleware(thunkMiddleware));

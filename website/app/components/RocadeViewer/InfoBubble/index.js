@@ -26,7 +26,7 @@ export default class InfoBubble extends Component {
     // Function to execute when component is closed
     onClose: React.PropTypes.func.isRequired,
     // Current loaded date
-    currentDate: React.PropTypes.string.isRequired,
+    currentDate: React.PropTypes.object.isRequired,
     // Position of the bubble
     position: React.PropTypes.object.isRequired
   };

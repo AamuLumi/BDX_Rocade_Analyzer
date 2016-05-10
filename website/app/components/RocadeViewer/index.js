@@ -3,7 +3,7 @@
 // Imports
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import {fetchPartsByDateIfNeeded} from '~/actions/Rocade';
+import {loadDataForViewer} from '~/actions/Data';
 import {saveViewer} from '~/actions/RocadeViewer';
 import Rocade from '~/conf/Rocade';
 import DateSlider from './DateSlider';
@@ -42,7 +42,7 @@ const LAYER_SELECTION = 1;
  * @return {String}   the CSS color
  */
 function getColorForTraffic(t) {
-  return Rocade.trafficState[t+1].color;
+  return Rocade.trafficState[t + 1].color;
 }
 
 /**
@@ -151,7 +151,7 @@ class RocadeViewer extends Component {
       // Current showed date
       currentDate: undefined,
 
-      // Cursor for the data.parts array
+      // Cursor for the data array
       valuesCursor: 0,
 
       // Boolean to ask a redraw of canvas
@@ -193,12 +193,11 @@ class RocadeViewer extends Component {
 
       // At mounting of new component, if there's no loaded data
       // Load it
-      if (!this.props.data.lastUpdated) {
+      if (!this.props.loadedData.lastUpdated) {
         this.props.fetchParts();
       } else { // Else, update component with available data
         this.componentWillReceiveProps(this.props);
       }
-
     });
   }
 
@@ -211,16 +210,19 @@ class RocadeViewer extends Component {
     // Refresh props
     this.props = nextProps;
 
+    let {viewer, loadedData} = this.props;
+
     // Restore previous state if existing
-    if (this.props.viewer && this.props.viewer.lastUpdated) {
-      this.setState(this.props.viewer, () => {
+    if (viewer && viewer.lastUpdated) {
+      this.setState(viewer, () => {
         this.refs.dateSlider.setValue(this.state.valuesCursor);
         this.changeDate(this.state.valuesCursor);
       });
     } else {
+      let data = loadedData.data;
 
       // Set the lastUpdated state
-      let lastUpdated = this.props.data.lastUpdated;
+      let lastUpdated = loadedData.lastUpdated;
 
       // If there's data and this is différent from last loaded
       // datas
@@ -235,7 +237,7 @@ class RocadeViewer extends Component {
         };
 
         // If there's parts in data
-        if (this.props.data.parts.length <= 0) {
+        if (data.length <= 0) {
           // Setup something to say no date is found
           nextState.currentDate = undefined;
         }
@@ -304,35 +306,29 @@ class RocadeViewer extends Component {
     */
   getBeginningOf(p) {
     const {valuesCursor} = this.state;
-    const {data} = this.props;
+    const {loadedData} = this.props;
+    const data = loadedData.data;
 
     let lastTime = 0;
+    let currentPart = undefined;
 
     // Check parameters and datas We don't do this if we are on
     // the first datas (useless)
-    if (!data || !data.parts || valuesCursor <= 0) {
+    if (!data || valuesCursor <= 0) {
       return 0;
     }
 
     // For each datas until the first
     for (let c = valuesCursor - 1; c >= 0; c--) {
-      // For each part
-      for (let part of data.parts[c].parts) {
-        // If it's the good part
-        if (part.partNumber === p.partNumber) {
-          // If it has the same traffic state -> memorize date
-          if (part.trafficState === p.trafficState) {
-            console.log('same');
-            lastTime = data.parts[c]._id;
-          } else {
-            // Else it's a differente traffic state, so return the last
-            // time  where traffic was the same
-            return lastTime;
-          }
-          // No need to iterate more parts when we have found the good
-          // part
-          break;
-        }
+      currentPart = data[c].p[p.partNumber];
+
+      // If it has the same traffic state -> memorize date
+      if (p.trafficState === currentPart) {
+        lastTime = data[c].d;
+      } else {
+        // Else it's a differente traffic state, so return the last
+        // time  where traffic was the same
+        return lastTime;
       }
     }
 
@@ -377,9 +373,12 @@ class RocadeViewer extends Component {
       valuesCursor: value
     };
 
+    const {loadedData} = this.props;
+    const data = loadedData.data;
+
     // If there's parts and there's the good part
-    if (this.props.data.parts && this.props.data.parts[value]) {
-      nextState.currentDate = this.props.data.parts[value]._id;
+    if (data && data[value]) {
+      nextState.currentDate = data[value].d;
     }
 
     this.setState(nextState, () => {
@@ -431,12 +430,13 @@ class RocadeViewer extends Component {
     };
 
     // Make a variable to short access
-    let data = this.props.data;
+    const {loadedData} = this.props;
+    const data = loadedData.data;
 
     // If this is the first drawing and there's data loaded, add
     // the first date to state
-    if (isFirst && data.parts && data.parts[0]) {
-      nextState.currentDate = data.parts[0]._id;
+    if (isFirst && data && data[0]) {
+      nextState.currentDate = data[0].d;
     }
 
     // Change state, and start drawing
@@ -454,7 +454,8 @@ class RocadeViewer extends Component {
     paper.setup(canvas);
 
     // Make a variable to short access
-    let data = this.props.data;
+    const {loadedData} = this.props;
+    const data = loadedData.data;
 
     // Array to store drawn points
     let drawnPoints = [];
@@ -511,8 +512,8 @@ class RocadeViewer extends Component {
     // Get loaded datas
     let currentParts = undefined;
 
-    if (data && data.parts[valuesCursor] && data.parts[valuesCursor].parts) {
-      currentParts = data.parts[valuesCursor].parts;
+    if (data && data[valuesCursor] && data[valuesCursor].p) {
+      currentParts = data[valuesCursor].p;
     }
 
     // For each "path" (= group of parts)
@@ -568,7 +569,7 @@ class RocadeViewer extends Component {
             partNumber = current.parts[i][pathToUse].partNumber;
 
             // Determinate the traffic state
-            trafficState = getTrafficFor(partNumber, currentParts);
+            trafficState = currentParts[partNumber];
 
             // Get the equivalent color
             color = getColorForTraffic(trafficState);
@@ -728,10 +729,17 @@ class RocadeViewer extends Component {
    * @return {Object} the component
    */
   render() {
-    const {data} = this.props;
+    const {loadedData} = this.props;
+    const data = loadedData.data;
     const {currentDate, selectionInfos} = this.state;
 
     let infoBubble = undefined;
+
+    let max = 0;
+
+    if (data){
+      max = data.length -1;
+    }
 
     // If there's a selection, compute InfoBubble
     if (selectionInfos) {
@@ -749,7 +757,7 @@ class RocadeViewer extends Component {
         <div id="rocadeInfos">
           <DateSlider
             onChange={(v) => this.changeDate(v)}
-            max={data.parts.length - 1}
+            max={max}
             initial={0}
             ref="dateSlider"
             date={currentDate}/>
@@ -763,13 +771,13 @@ class RocadeViewer extends Component {
 
 // Connect to the store
 const mapStateToProps = (state) => {
-  return {data: state.partsByDate, viewer: state.getViewer};
+  return {loadedData: state.viewerData, viewer: state.getViewer};
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
     fetchParts: (request) => {
-      dispatch(fetchPartsByDateIfNeeded(request));
+      dispatch(loadDataForViewer(request));
     },
     saveViewer: (state) => {
       dispatch(saveViewer(state));

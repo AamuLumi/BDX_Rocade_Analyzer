@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {Link} from 'react-router';
 import {connect} from 'react-redux';
-import {fetchPartsByDateIfNeeded, fetchPartsByPartIfNeeded} from '~/actions/Rocade';
+import {loadDataForUpChart, loadDataForDownChart} from '~/actions/Data';
 import Charts from './Charts';
 import ChartSelector from './ChartSelector';
 
@@ -38,11 +38,6 @@ class PartViewer extends Component {
     window.addEventListener('resize', (e) => {
       this.handleResize(e);
     });
-
-    if (!this.props.hasBack) {
-      this.props.fetchPartsByDate();
-      this.props.fetchPartsByPart({partNumber: this.props.params.id, period: HOURS_IN_WEEK});
-    }
   }
 
   componentDidMount() {
@@ -92,22 +87,24 @@ class PartViewer extends Component {
     }
   }
 
-  getChart(chartName) {
-    let {dataByDate, dataByPart, params} = this.props;
+  getChart(chartName, data, getData) {
+    let {params} = this.props;
     let {width, height} = this.state;
 
     if (chartName === 'HistoryTraffic') {
       return (<Charts.HistoryTraffic
-        data={dataByDate}
+        data={data}
         id={parseInt(params.id)}
+        getData={(req) => getData(req)}
         size={{
         width: width,
         height: height
       }}/>);
     } else if (chartName === 'WeekTraffic') {
       return (<Charts.WeekTraffic
-        data={dataByPart}
+        data={data}
         id={parseInt(params.id)}
+        getData={(req) => getData(req)}
         size={{
         width: width,
         height: height
@@ -115,12 +112,22 @@ class PartViewer extends Component {
     }
   }
 
+  getDownChart() {
+    return this.getChart(this.state.downChart, this.props.downData.data, (req) => this.props.fetchDownData(req));
+  }
+
+  getUpChart() {
+    return this.getChart(this.state.upChart, this.props.upData.data,(req) => this.props.fetchUpData(req));
+  }
+
   setUpChart(chartName) {
     const {upChart, downChart} = this.state;
 
-    let nextState = {upChart: chartName};
+    let nextState = {
+      upChart: chartName
+    };
 
-    if (chartName === downChart){
+    if (chartName === downChart) {
       nextState.downChart = upChart;
     }
     this.setState(nextState);
@@ -129,9 +136,11 @@ class PartViewer extends Component {
   setDownChart(chartName) {
     const {upChart, downChart} = this.state;
 
-    let nextState = {downChart: chartName};
+    let nextState = {
+      downChart: chartName
+    };
 
-    if (chartName === upChart){
+    if (chartName === upChart) {
       nextState.upChart = downChart;
     }
     this.setState(nextState);
@@ -158,8 +167,8 @@ class PartViewer extends Component {
           </div>
 
           <div id="charts">
-            {this.getChart(upChart)}
-            {this.getChart(downChart)}
+            {this.getUpChart(upChart)}
+            {this.getDownChart(downChart)}
           </div>
         </div>
       </div>
@@ -169,16 +178,16 @@ class PartViewer extends Component {
 
 // Connect to the store
 const mapStateToProps = (state) => {
-  return {dataByDate: state.partsByDate, dataByPart: state.partsByPart};
+  return {upData: state.upChartData, downData: state.downChartData};
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    fetchPartsByDate: (request) => {
-      dispatch(fetchPartsByDateIfNeeded(request));
+    fetchUpData: (request) => {
+      dispatch(loadDataForUpChart(request));
     },
-    fetchPartsByPart: (request) => {
-      dispatch(fetchPartsByPartIfNeeded(request));
+    fetchDownData: (request) => {
+      dispatch(loadDataForDownChart(request));
     }
   };
 };
