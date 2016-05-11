@@ -6,7 +6,7 @@ import DateTools from '~/app/tools/DateTools';
 const MAX_TRAFFIC = 3;
 
 // 6 datas corrsponds to 6*5min=30minutes
-const NB_DATAS_PER_RES = 10;
+const NB_DATAS_PER_RES = 6;
 const REFRESH_TIME = 5;
 const PERIOD_DATA = REFRESH_TIME * NB_DATAS_PER_RES;
 
@@ -106,6 +106,15 @@ export default class WeekTraffic extends BasicChart {
       }
     }
 
+    if (averageTraffic !== 0){
+      lastDate = new Date(data[data.length -1].d);
+      res.push({
+        x: lastDate,
+        y: averageTraffic / NB_DATAS_PER_RES
+      });
+      unavailableTraffic.push({x: lastDate, y: 0});
+    }
+
     this.setState({
       entriesLength: res.length,
       chartData: [
@@ -126,8 +135,8 @@ export default class WeekTraffic extends BasicChart {
 
   calcXInterval(callback) {
     let xTickInterval = {
-      unit: 'day',
-      interval: 1
+      unit: 'hour',
+      interval: 12
     };
 
     this.setState({
