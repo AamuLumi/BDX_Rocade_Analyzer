@@ -24,10 +24,6 @@ const SELECTION_STROKE_COLOR = 'black';
 const SELECTION_STROKE_WIDTH = 3;
 const PADDING_INFOS = 15;
 
-// Constants for startDraw()
-const FULL_REDRAW = true;
-const PARTIAL_REDRAW = false;
-
 // Constants for paper.view.update()
 const FORCE_PAPER_REDRAW = true;
 const NO_FORCE_PAPER_REDRAW = false;
@@ -227,24 +223,30 @@ class RocadeViewer extends Component {
       // If there's data and this is différent from last loaded
       // datas
       if (lastUpdated && lastUpdated !== this.state.lastUpdated) {
-        // Setup the date slider to the first value
-        this.refs.dateSlider.setValue(0);
-
         // Compute the next state of component
         let nextState = {
           lastUpdated: lastUpdated,
-          valuesCursor: 0
+          valuesCursor: 0,
+          currentDate: undefined
         };
 
+        console.log(data);
+
         // If there's parts in data
-        if (data.length <= 0) {
+        if (data.length > 0) {
+          console.log('here');
           // Setup something to say no date is found
-          nextState.currentDate = undefined;
+          nextState.currentDate = data[data.length -1].d;
+          // Setup slider to the last value
+          nextState.valuesCursor = data.length -1;
         }
+
+        // Setup the date slider to the last value
+        this.refs.dateSlider.setValue(nextState.valuesCursor);
 
         // Set new state, and re-draw after
         this.setState(nextState, () => {
-          this.startDraw(FULL_REDRAW);
+          this.startDraw();
         });
       }
     }
@@ -272,7 +274,7 @@ class RocadeViewer extends Component {
       mustRedraw: true
     }, () => {
       // Redraw the canvas
-      this.startDraw(PARTIAL_REDRAW);
+      this.startDraw();
       // Re-render the component
       this.render();
     });
@@ -368,6 +370,7 @@ class RocadeViewer extends Component {
    * @param  {Integer} value the new cursor on the parts array
    */
   changeDate(value) {
+    console.log('date called');
     // Setup new state
     let nextState = {
       valuesCursor: value
@@ -383,7 +386,7 @@ class RocadeViewer extends Component {
 
     this.setState(nextState, () => {
       // Redraw after updating date and cursor
-      this.draw(PARTIAL_REDRAW);
+      this.draw();
     });
   }
 
@@ -413,10 +416,8 @@ class RocadeViewer extends Component {
 
   /**
     * Setup a new drawing, and called draw after
-    * @param  {Boolean} isFirst true if needs a full redraw (for example,
-    *  when we draw for the first time)
     */
-  startDraw(isFirst) {
+  startDraw() {
     // Setup the first drawing Get canvas and setup paperJs to
     // work on
     let canvas = document.getElementById('rocade-canvas');
@@ -428,16 +429,6 @@ class RocadeViewer extends Component {
       height: paper.view.size.height,
       mustRedraw: false
     };
-
-    // Make a variable to short access
-    const {loadedData} = this.props;
-    const data = loadedData.data;
-
-    // If this is the first drawing and there's data loaded, add
-    // the first date to state
-    if (isFirst && data && data[0]) {
-      nextState.currentDate = data[0].d;
-    }
 
     // Change state, and start drawing
     this.setState(nextState, () => {
@@ -600,7 +591,7 @@ class RocadeViewer extends Component {
     // Redraw if the state.mustRedraw has been changed during
     // drawing It perform a resize queue
     if (this.state.mustRedraw) {
-      this.startDraw(false);
+      this.startDraw();
     } else {
       // Nothing to redraw, to update the view
       paper.view.update(FORCE_PAPER_REDRAW);
@@ -731,7 +722,9 @@ class RocadeViewer extends Component {
   render() {
     const {loadedData} = this.props;
     const data = loadedData.data;
-    const {currentDate, selectionInfos} = this.state;
+    const {currentDate, selectionInfos, valuesCursor} = this.state;
+
+    console.log(currentDate);
 
     let infoBubble = undefined;
 
@@ -758,7 +751,7 @@ class RocadeViewer extends Component {
           <DateSlider
             onChange={(v) => this.changeDate(v)}
             max={max}
-            initial={0}
+            initial={valuesCursor}
             ref="dateSlider"
             date={currentDate}/>
           <ViewerLegend/>
