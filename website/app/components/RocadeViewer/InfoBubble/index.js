@@ -2,12 +2,8 @@
 import React, {Component} from 'react';
 import {Link} from 'react-router';
 import Rocade from '~/app/conf/Rocade';
+import DateTools from '~/app/tools/DateTools';
 import './InfoBubble.less';
-
-// Time constants
-const MS_IN_SECONDES = 1000;
-const SECONDES_IN_MINUTES = 60;
-const MS_IN_MINUTES = MS_IN_SECONDES * SECONDES_IN_MINUTES;
 
 /**
  * Calculate a difference between two dates
@@ -35,16 +31,16 @@ export default class InfoBubble extends Component {
    * Compute the string with since details
    * @return {String} since details
    */
-  computeStringSince(){
+  computeStringSince() {
     const {selectionInfos, currentDate} = this.props;
 
-    // If there's a beginning
-    // IMPORTANT : Comparison with undefined is needed, because beginning can
-    //  be equal to 0, which is a existing value.
+    // If there's a beginning IMPORTANT : Comparison with
+    // undefined is needed, because beginning can  be equal to
+    // 0, which is a existing value.
     if (selectionInfos.beginning !== undefined) {
       if (selectionInfos.beginning !== 0) {
         // Calculate time difference with currentDate in minutes
-        let d = dateDifference(selectionInfos.beginning, currentDate) / (MS_IN_MINUTES);
+        let d = dateDifference(selectionInfos.beginning, currentDate) / DateTools.m2ms(1);
 
         return ' depuis ' + Math.round(d) + ' minutes';
       } else {
@@ -65,7 +61,7 @@ export default class InfoBubble extends Component {
     let style = position;
 
     // Traffic informations are loaded from conf/Rocade
-    let traffic = Rocade.trafficState[selectionInfos.trafficState+1];
+    let traffic = Rocade.trafficState[selectionInfos.trafficState + 1];
 
     // Setup id of component, and beginning string
     traffic.id = traffic.name + ' stateText';

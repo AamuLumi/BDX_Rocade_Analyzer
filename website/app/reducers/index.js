@@ -6,11 +6,6 @@ import {
 import thunkMiddleware from 'redux-thunk';
 
 import {
-    partsByDate,
-    partsByPart
-} from './Rocade';
-
-import {
   getViewer
 } from './RocadeViewer';
 
@@ -22,8 +17,6 @@ import {
 } from './Data';
 
 export default createStore(combineReducers({
-    partsByDate,
-    partsByPart,
     getViewer,
     data,
     viewerData,

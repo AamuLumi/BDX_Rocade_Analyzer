@@ -14,10 +14,6 @@ const TOTAL_PADDING_HORIZONTAL = PADDING_HORIZONTAL * 2;
 // don't consider size of title
 const CHART_SIZE = 0.50;
 
-const HOURS_IN_DAY = 24;
-const DAYS_IN_WEEK = 7;
-const HOURS_IN_WEEK = HOURS_IN_DAY * DAYS_IN_WEEK;
-
 class PartViewer extends Component {
   static contextTypes = {
     router: React.PropTypes.object.isRequired,

@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
-import BasicChart from './BasicChart';
 import {AreaChart} from 'rd3';
+import BasicChart from './BasicChart';
+import DateTools from '~/app/tools/DateTools';
 
 const MAX_TRAFFIC = 3;
 
@@ -9,14 +10,7 @@ const NB_DATAS_PER_RES = 10;
 const REFRESH_TIME = 5;
 const PERIOD_DATA = REFRESH_TIME * NB_DATAS_PER_RES;
 
-// Time constants
-const MS_IN_SECONDES = 1000;
-const SECONDES_IN_MINUTES = 60;
-const MINUTES_IN_HOURS = 60;
-const HOURS_IN_DAY = 24;
-const MS_IN_MINUTES = MS_IN_SECONDES * SECONDES_IN_MINUTES;
-const MS_IN_HOURS = MS_IN_MINUTES * MINUTES_IN_HOURS;
-const MS_IN_DAY = MS_IN_HOURS * HOURS_IN_DAY;
+const NOT_FOUND = -1;
 
 function colors(b) {
   switch (b) {
@@ -46,8 +40,8 @@ export default class WeekTraffic extends BasicChart {
   getData() {
     let currentDate = new Date();
     let lastWeek = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), currentDate.getHours());
-    lastWeek.setTime(lastWeek.getTime() - MS_IN_DAY * 7);
-    this.props.getData({'since': lastWeek, 'period': HOURS_IN_DAY *7});
+    lastWeek.setTime(lastWeek.getTime() - DateTools.w2ms(1));
+    this.props.getData({'since': lastWeek, 'period': DateTools.w2h(1)});
   }
 
   computeChartData() {
@@ -69,7 +63,7 @@ export default class WeekTraffic extends BasicChart {
 
     for (let entry of data) {
       currentDate = new Date(entry.d);
-      noDataLost = entry.p[id] > -1;
+      noDataLost = entry.p[id] > NOT_FOUND;
 
       if (noDataLost && currentEntry % NB_DATAS_PER_RES === 0) {
         res.push({

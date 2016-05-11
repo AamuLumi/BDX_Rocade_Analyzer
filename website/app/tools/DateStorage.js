@@ -7,14 +7,10 @@
  */
 
 import Immutable from 'immutable';
+import DateTools from './DateTools';
 
 // Time constants
-const MS_IN_SECONDES = 1000;
-const SECONDES_IN_MINUTES = 60;
-const MINUTES_IN_HOURS = 60;
-const MS_IN_MINUTES = MS_IN_SECONDES * SECONDES_IN_MINUTES;
-const MS_IN_HOURS = MS_IN_MINUTES * MINUTES_IN_HOURS;
-const REFRESH_TIME = 5 * MS_IN_MINUTES;
+const REFRESH_TIME = DateTools.m2ms(5);
 const MAX_TIME_BETWEEN_ENTRY = 2 * REFRESH_TIME;
 
 const LAST_PART = 137;
@@ -276,7 +272,7 @@ export default class DateStorage {
 
         let currentDate = new Date();
         let pastDate = new Date(currentDate.getTime() -
-            (DEFAULT_PERIOD-1) * MS_IN_HOURS);
+            DateTools.h2ms(DEFAULT_PERIOD - 1));
 
         let begin = {
             year: 2016,
@@ -307,8 +303,8 @@ export default class DateStorage {
             begin.hour);
 
         // 1+period and -1 is to get the end of the current hour
-        let tmpBegin = new Date(beginDate.getTime() + (1+period) *
-            MS_IN_HOURS -1);
+        let tmpBegin = new Date(beginDate.getTime() +
+            DateTools.h2ms(1 + period) - 1);
 
         let end = {
             year: 2016,
@@ -351,7 +347,7 @@ export default class DateStorage {
                 missing, only);
 
             beginDate.setTime(beginDate.getTime() +
-                MS_IN_HOURS);
+                DateTools.h2ms(1));
         }
 
         // Compute req with timeslots
@@ -373,9 +369,9 @@ export default class DateStorage {
                     $gte: m
                 });
             } else if (isNotFuture && m.getTime() !==
-                lastDate.getTime() + MS_IN_HOURS) {
+                lastDate.getTime() + DateTools.h2ms(1)) {
                 tmp.$lte = new Date(lastDate.getTime() +
-                    MS_IN_HOURS - 1);
+                    DateTools.h2ms(1) - 1);
                 finalMissing.push(tmp);
                 tmp = Object.assign({}, reqItem, {
                     $gte: m
@@ -387,7 +383,7 @@ export default class DateStorage {
 
         if (tmp.$gte) {
             tmp.$lte = new Date(lastDate.getTime() +
-                MS_IN_HOURS - 1);
+                DateTools.h2ms(1) - 1);
             finalMissing.push(tmp);
         }
 
