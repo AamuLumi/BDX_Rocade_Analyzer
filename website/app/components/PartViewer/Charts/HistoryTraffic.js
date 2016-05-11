@@ -8,6 +8,19 @@ const MAX_TRAFFIC = 3;
 const STEP_FEW_DATAS = 7;
 const STEP_MID_DATAS = 40;
 
+function colors(b) {
+  switch (b) {
+    case 1:
+      return '#e6550d';
+    default:
+      return ' #3182bd';
+  }
+}
+
+colors.domain = function() {
+  return;
+};
+
 export default class HistoryTraffic extends BasicChart {
   componentWillMount() {
     super.componentWillMount();
@@ -29,17 +42,59 @@ export default class HistoryTraffic extends BasicChart {
   computeChartData() {
     let {data, id} = this.props;
 
-    if (!data) {
+    if (!data || !data[0]) {
       return undefined;
     }
 
     let res = [];
+    let unavailableTraffic = [];
+    let unavailableState = false;
+    let lastDate = data[0].d;
 
     for (let entry of data) {
-      res.push({
-        x: new Date(entry.d),
-        y: entry.p[id]
-      });
+      if (entry.p[id] >= 0){
+        if (unavailableState){
+          res.push({
+            x: lastDate,
+            y: entry.p[id]
+          });
+          unavailableTraffic.push({
+            x: lastDate,
+            y: 0
+          });
+          unavailableState = false;
+        }
+        res.push({
+          x: entry.d,
+          y: entry.p[id]
+        });
+        unavailableTraffic.push({
+          x: entry.d,
+          y: 0
+        });
+      } else {
+        if (!unavailableState){
+          res.push({
+            x: lastDate,
+            y: 0
+          });
+          unavailableTraffic.push({
+            x: lastDate,
+            y: 3
+          });
+          unavailableState = true;
+        }
+        res.push({
+          x: entry.d,
+          y: 0
+        });
+        unavailableTraffic.push({
+          x: entry.d,
+          y: 3
+        });
+      }
+
+      lastDate = entry.d;
     }
 
     this.setState({
@@ -48,6 +103,9 @@ export default class HistoryTraffic extends BasicChart {
         {
           name: 'trafficState',
           values: res
+        }, {
+          name: 'notFound',
+          values: unavailableTraffic
         }
       ]
     }, () => {
@@ -98,6 +156,7 @@ export default class HistoryTraffic extends BasicChart {
           height={this.getHeight()}
           xAxisTickInterval={xTickInterval}
           yAxisTickCount={MAX_TRAFFIC}
+          colors={colors}
           domain={{
           y: [0, MAX_TRAFFIC]
         }}/>
