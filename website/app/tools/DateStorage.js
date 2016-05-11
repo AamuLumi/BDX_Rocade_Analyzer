@@ -56,8 +56,8 @@ function isDate(d) {
     return Object.prototype.toString.call(d) === '[object Date]';
 }
 
-function getDate(d) {
-    if (isDate(d)) {
+function getDate(d, clone) {
+    if (isDate(d) && !clone) {
         return d;
     } else {
         return new Date(d);
@@ -66,6 +66,17 @@ function getDate(d) {
 
 function dateDifference(d1, d2) {
     return d1.getTime() - d2.getTime();
+}
+
+function removeDataAfterHour(d) {
+    if (!isDate(d)) {
+        return;
+    }
+
+    // Remove any useless data to focus hours timeslots
+    d.setMinutes(0);
+    d.setSeconds(0);
+    d.setMilliseconds(0);
 }
 
 export default class DateStorage {
@@ -150,26 +161,105 @@ export default class DateStorage {
         }
     }
 
+    static computeRequest(req) {
+        let current = new Date();
+        let since = new Date(current.getTime() -
+            DateTools.h2ms(DEFAULT_PERIOD));
+        removeDataAfterHour(since);
+        // Default request
+        let computedReq = {
+            since: since,
+            until: current,
+            default: true
+        };
+
+        // If invalid arguments, send default
+        if (!req || (!req.since && !req.until)) {
+            return computedReq;
+        }
+
+        // If since, calculates until
+        if (req.since) {
+            computedReq = {
+                since: getDate(req.since, true)
+            };
+            if (req.period) {
+                computedReq.until = new Date(computedReq.since
+                    .getTime() + DateTools.h2ms(req.period)
+                );
+            } else if (req.until) {
+                computedReq.until = getDate(req.until, true);
+            } else {
+                computedReq.until = new Date(computedReq.since
+                    .getTime() + DateTools.h2ms(
+                        DEFAULT_PERIOD)
+                );
+            }
+        } else {
+            // Else, calculates since
+            computedReq = {
+                until: getDate(req.until, true)
+            };
+            if (req.period) {
+                computedReq.since = new Date(computedReq.until
+                    .getTime() - DateTools.h2ms(req.period)
+                );
+            } else {
+                computedReq.since = new Date(computedReq.until
+                    .getTime() - DateTools.h2ms(
+                        DEFAULT_PERIOD)
+                );
+            }
+        }
+
+        return computedReq;
+    }
+
     static addArray(array, dateAccessor, req) {
         let date = undefined;
+        let currentDate = new Date();
         let lastDate = undefined;
         let newDate = undefined;
         let currentMap = undefined;
         let i = 0;
 
+        let computedReq = this.computeRequest(req);
+
         if (!array || array.length === 0) {
+            while (dateDifference(computedReq.until,
+                    computedReq.since) >
+                MAX_TIME_BETWEEN_ENTRY && dateDifference(
+                    currentDate, computedReq.since) > 0) {
+                newDate = new Date(computedReq.since.getTime() +
+                    REFRESH_TIME);
+
+                this.addParts(newDate,
+                    newEmptyPartMap());
+
+                computedReq.since = newDate;
+            }
             return;
+        }
+
+        let firstDate = getDate(array[0][dateAccessor]);
+
+        if (computedReq && computedReq.since) {
+            while (dateDifference(firstDate, computedReq.since) >
+                MAX_TIME_BETWEEN_ENTRY) {
+                newDate = new Date(computedReq.since.getTime() +
+                    REFRESH_TIME);
+
+                this.addParts(newDate,
+                    newEmptyPartMap());
+
+                computedReq.since = newDate;
+            }
         }
 
         for (let e of array) {
             date = getDate(e[dateAccessor]);
 
             if (date) {
-                // Check if there's missing records
-                // TO UPGRADE : Add use of request to found
-                //  beginning and ending missing elements
-                //  and add exception to current hour, to avoid
-                //  to setup future datas as not_found
                 if (lastDate && dateDifference(date,
                         lastDate) > MAX_TIME_BETWEEN_ENTRY) {
 
@@ -201,29 +291,22 @@ export default class DateStorage {
 
                 this.addParts(date, currentMap);
 
-                // Algorithm to add point per point
-                // // Add each point to the storage
-                // i = 0;
-                //
-                // for (; i < e.p.length; i++) {
-                //     if (e.p[i] !== null) {
-                //         this.add(date, e.p[i], i);
-                //     } else {
-                //         this.add(date, STATE_NOT_FOUND, i);
-                //     }
-                //     addedArray[i] = true;
-                // }
-                //
-                // // Complete not found results with STATE_NOT_FOUND value
-                // i = 0;
-                //
-                // for (; i <= LAST_PART; i++) {
-                //     if (!addedArray[i]) {
-                //         this.add(date, STATE_NOT_FOUND, i);
-                //     }
-                // }
-
                 lastDate = date;
+            }
+        }
+
+        if (computedReq && computedReq.until) {
+            while (dateDifference(computedReq.until,
+                    lastDate) > MAX_TIME_BETWEEN_ENTRY &&
+                dateDifference(currentDate, lastDate) > 0) {
+
+                newDate = new Date(lastDate.getTime() +
+                    REFRESH_TIME);
+
+                this.addParts(newDate,
+                    newEmptyPartMap());
+
+                lastDate = newDate;
             }
         }
     }
@@ -270,84 +353,29 @@ export default class DateStorage {
     static get(req) {
         let only = (req && req.only) || {};
 
+        let computedRequest = this.computeRequest(req);
+        removeDataAfterHour(computedRequest.since);
+
         let currentDate = new Date();
-        let pastDate = new Date(currentDate.getTime() -
-            DateTools.h2ms(DEFAULT_PERIOD - 1));
-
-        let begin = {
-            year: 2016,
-            month: only.beginMonth || pastDate.getMonth(),
-            day: only.beginDay || pastDate.getDate(),
-            hour: only.beginHour || pastDate.getHours()
-        };
-
-        if (req && req.since) {
-            let sinceDate = req.since;
-
-            if (!isDate(sinceDate)) {
-                sinceDate = new Date(sinceDate);
-            }
-
-            begin = {
-                year: sinceDate.getFullYear(),
-                month: sinceDate.getMonth(),
-                day: sinceDate.getDate(),
-                hour: sinceDate.getHours()
-            };
-        }
-
-        let period = (req && req.period) || DEFAULT_PERIOD;
-
-        let beginDate = new Date(begin.year,
-            begin.month, begin.day,
-            begin.hour);
-
-        // 1+period and -1 is to get the end of the current hour
-        let tmpBegin = new Date(beginDate.getTime() +
-            DateTools.h2ms(1 + period) - 1);
-
-        let end = {
-            year: 2016,
-            month: only.endMonth || tmpBegin.getMonth(),
-            day: only.endDay || tmpBegin.getDate(),
-            hour: only.endHour || tmpBegin.getHours()
-        };
-
-        if (req && req.until) {
-            let untilDate = req.until;
-
-            if (!isDate(untilDate)) {
-                untilDate = new Date(untilDate);
-            }
-
-            end = {
-                year: untilDate.getFullYear(),
-                month: only.endMonth || untilDate.getMonth(),
-                day: only.endDay || untilDate.getDate(),
-                hour: only.endHour || untilDate.getHours()
-            };
-        }
 
         let res = Immutable.List();
         let missing = [];
         let time = {};
 
-        let endDate = new Date(end.year, end.month, end.day,
-            end.hour);
-
-        while (beginDate.getTime() < endDate) {
+        while (computedRequest.since.getTime() <=
+            computedRequest.until.getTime()) {
             time = {
-                year: beginDate.getFullYear(),
-                month: beginDate.getMonth(),
-                day: beginDate.getDate(),
-                hour: beginDate.getHours()
+                year: computedRequest.since.getFullYear(),
+                month: computedRequest.since.getMonth(),
+                day: computedRequest.since.getDate(),
+                hour: computedRequest.since.getHours()
             };
 
             res = this.requestEntry(time, res,
                 missing, only);
 
-            beginDate.setTime(beginDate.getTime() +
-                DateTools.h2ms(1));
+            computedRequest.since.setTime(computedRequest.since
+                .getTime() + DateTools.h2ms(1));
         }
 
         // Compute req with timeslots
@@ -364,21 +392,25 @@ export default class DateStorage {
         for (let m of missing) {
             isNotFuture = m.getTime() < currentDate.getTime();
 
-            if (isNotFuture && !tmp.$gte) {
-                tmp = Object.assign({}, reqItem, {
-                    $gte: m
-                });
-            } else if (isNotFuture && m.getTime() !==
-                lastDate.getTime() + DateTools.h2ms(1)) {
-                tmp.$lte = new Date(lastDate.getTime() +
-                    DateTools.h2ms(1) - 1);
-                finalMissing.push(tmp);
-                tmp = Object.assign({}, reqItem, {
-                    $gte: m
-                });
-            }
+            if (isNotFuture) {
+                if (!tmp.$gte) {
+                    tmp = Object.assign({}, reqItem, {
+                        $gte: m
+                    });
+                } else if (m.getTime() !==
+                    lastDate.getTime() + DateTools.h2ms(1)) {
 
-            lastDate = m;
+                    tmp.$lte = new Date(lastDate.getTime() +
+                        DateTools.h2ms(1) - 1);
+                    finalMissing.push(tmp);
+
+                    tmp = Object.assign({}, reqItem, {
+                        $gte: m
+                    });
+                }
+
+                lastDate = m;
+            }
         }
 
         if (tmp.$gte) {

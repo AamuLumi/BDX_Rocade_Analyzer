@@ -22,7 +22,7 @@ export default class HistoryTraffic extends BasicChart {
 
   getData() {
     let currentDate = new Date();
-    let currentDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+    let currentDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), 0);
     this.props.getData({'since': currentDay, 'period': currentDate.getHours()});
   }
 

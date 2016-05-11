@@ -39,9 +39,7 @@ export default class WeekTraffic extends BasicChart {
 
   getData() {
     let currentDate = new Date();
-    let lastWeek = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), currentDate.getHours());
-    lastWeek.setTime(lastWeek.getTime() - DateTools.w2ms(1));
-    this.props.getData({'since': lastWeek, 'period': DateTools.w2h(1)});
+    this.props.getData({'until': currentDate, 'period': DateTools.w2h(1)});
   }
 
   computeChartData() {

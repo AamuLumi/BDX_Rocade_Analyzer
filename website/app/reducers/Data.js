@@ -32,7 +32,7 @@ export function viewerData(state, action) {
     return data(state, action, {
         LOADING: VIEWER_LOADING,
         LOADED: VIEWER_LOADED
-    });;
+    });
 }
 
 export function upChartData(state, action) {
