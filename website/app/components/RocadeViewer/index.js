@@ -230,11 +230,8 @@ class RocadeViewer extends Component {
           currentDate: undefined
         };
 
-        console.log(data);
-
         // If there's parts in data
         if (data.length > 0) {
-          console.log('here');
           // Setup something to say no date is found
           nextState.currentDate = data[data.length -1].d;
           // Setup slider to the last value
@@ -370,10 +367,9 @@ class RocadeViewer extends Component {
    * @param  {Integer} value the new cursor on the parts array
    */
   changeDate(value) {
-    console.log('date called');
     // Setup new state
     let nextState = {
-      valuesCursor: value
+      valuesCursor: parseInt(value)
     };
 
     const {loadedData} = this.props;
@@ -725,6 +721,7 @@ class RocadeViewer extends Component {
     const {currentDate, selectionInfos, valuesCursor} = this.state;
 
     console.log(currentDate);
+    console.log(valuesCursor);
 
     let infoBubble = undefined;
 
@@ -751,7 +748,7 @@ class RocadeViewer extends Component {
           <DateSlider
             onChange={(v) => this.changeDate(v)}
             max={max}
-            initial={valuesCursor}
+            initial={valuesCursor || 0}
             ref="dateSlider"
             date={currentDate}/>
           <ViewerLegend/>
