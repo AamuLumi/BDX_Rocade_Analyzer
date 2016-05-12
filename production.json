@@ -1,0 +1,30 @@
+{
+  "apps" : [{
+    "name"        : "BRA - Analyzer",
+    "script"      : "main.js",
+    "cwd"         : "analyzer/",
+    "error_file"  : "log/BRA_ANA_ERR.log",
+    "out_file"    : "log/BRA_ANA_OUT.log",
+    "env": {
+      "NODE_ENV": "production",
+    }
+  }, {
+    "name"        : "BRA - API Server",
+    "script"      : "server.js",
+    "cwd"         : "server/",
+    "error_file"  : "log/BRA_API_ERROR.log",
+    "out_file"    : "log/BRA_API_OUT.log",
+    "env": {
+      "NODE_ENV": "production",
+    }
+  }, {
+    "name"        : "BRA - WEB Server",
+    "script"      : "server.js",
+    "cwd"         : "website/",
+    "error_file"  : "log/BRA_WEB_ERROR.log",
+    "out_file"    : "log/BRA_WEB_OUT.log",
+    "env": {
+      "NODE_ENV": "production",
+    }
+  }]
+}

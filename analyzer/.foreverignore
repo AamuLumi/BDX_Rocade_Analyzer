@@ -1,6 +1,0 @@
-.git
-.gitignore
-.foreverignore
-*.log
-analyzer/in.png
-analyzer/out.png
