@@ -31,7 +31,7 @@ const GROUP_BY_PART = 1;
 const periodThreshold = 1;
 
 // Mongoose Connection
-mongoose.connect('mongodb://localhost/roccade');
+mongoose.connect('mongodb://localhost/BRA');
 mongoose.connection.on('error',
     console.error.bind(console, 'connection error:'));
 
@@ -110,38 +110,14 @@ function parseDateForRequest(req) {
     return date;
 }
 
-function searchAndParse(res, searchRequest, GROUP_BY) {
+function searchAndParse(res, searchRequest) {
     let pipeline = [];
+
+    console.log(JSON.stringify(searchRequest));
 
     if (searchRequest) {
         pipeline.push({
             $match: searchRequest
-        });
-    }
-
-    if (GROUP_BY === GROUP_BY_DATE) {
-        pipeline.push({
-            $group: { // Group them by date
-                _id: '$date',
-                p: {
-                    $push: {
-                        n: '$partNumber',
-                        s: '$trafficState'
-                    }
-                }
-            }
-        });
-    } else if (GROUP_BY === GROUP_BY_PART) {
-        pipeline.push({
-            $group: { // Group them by date
-                _id: '$date',
-                p: {
-                    $push: {
-                        n: '$partNumber',
-                        s: '$trafficState'
-                    }
-                }
-            }
         });
     }
 
@@ -154,19 +130,9 @@ function searchAndParse(res, searchRequest, GROUP_BY) {
     console.log('Aggregate', new Date());
 
     PartEntry.aggregate(pipeline, (err, entries) => {
+
+      console.log(entries);
       console.log('After ag', new Date());
-        // Reduce parts entries to an array
-        for (let e of entries){
-          let newParts = [];
-
-          for (let p of e.p){
-            newParts[p.n] = p.s;
-          }
-
-          e.p = newParts;
-        }
-
-        console.log('before send', new Date());
 
         if (err) {
             res.status(CODE_ERROR).send(err);
@@ -180,47 +146,22 @@ function searchAndParse(res, searchRequest, GROUP_BY) {
 function computeRequest(req) {
     let searchRequest = {};
 
-    // Part number parsing
-    if ('partNumber' in req.body) {
-        searchRequest.partNumber = parseInt(req.body.partNumber);
-    }
-
     if (req.body.timeslots) {
         searchRequest.$or = [];
         for (let t of req.body.timeslots) {
             searchRequest.$or.push({
-                date: {
+                d: {
                     $gte: new Date(t.$gte),
                     $lte: new Date(t.$lte)
                 }
             });
         }
     } else {
-        searchRequest.date = parseDateForRequest(req);
-    }
-
-    // Traffic state parsing
-    if ('state' in req.body) {
-        searchRequest.trafficState = parseInt(req.body.state);
+        searchRequest.d = parseDateForRequest(req);
     }
 
     return searchRequest;
 }
-
-// Search entries with parameters and group the result with date
-// Available parameters :
-//  - partNumber : the part to select
-//  - state : the state of traffic
-//    (0 - GREEN | 1 - ORANGE | 2 - RED | 3 - BLACK)
-//  - since : since a date
-//  - until : until a date
-//  - period : time of period to get (in hours)
-//
-// Default : period is 6 hours
-app.post('/searchByDate', (req, res) => {
-    searchAndParse(res, computeRequest(req),
-        GROUP_BY_DATE);
-});
 
 // Search entries with parameters and group the result with partNumber
 // Available parameters :
@@ -233,7 +174,6 @@ app.post('/searchByDate', (req, res) => {
 //
 // Default : period is 6 hours
 app.post('/searchByPart', (req, res) => {
-    console.log(req.body);
     searchAndParse(res, computeRequest(req),
         GROUP_BY_PART);
 });

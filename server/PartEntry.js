@@ -3,9 +3,8 @@
 let mongoose = require('mongoose');
 
 let PartEntrySchema = new mongoose.Schema({
-  date: Date,
-  partNumber: Number,
-  trafficState: Number
+  d: Date, // Date
+  p: [{type : Number, default: -1}] // Parts
 });
 
 module.exports = mongoose.model('PartEntry', PartEntrySchema);

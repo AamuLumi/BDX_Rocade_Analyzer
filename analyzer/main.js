@@ -4,8 +4,7 @@ require('console-stamp')(console, '[HH:MM:ss.l]');
 
 let cv = require('opencv'),
     mongoose = require('mongoose'),
-    async = require('async'),
-//    fs = require('fs'),
+    //    fs = require('fs'),
     ColorTools = require('./ColorTools'),
     ColorConst = ColorTools.const,
     NetworkTools = require('./NetworkTools'),
@@ -14,7 +13,7 @@ let cv = require('opencv'),
     Rocade = require('./Rocade');
 
 // Mongoose Connection
-mongoose.connect('mongodb://localhost/roccade');
+mongoose.connect('mongodb://localhost/BRA');
 mongoose.connection.on('error',
     console.error.bind(console, 'connection error:'));
 
@@ -33,6 +32,8 @@ const TRAFFIC_RED = 2;
 const TRAFFIC_BLACK = 3;
 
 const NOT_FOUND = -1;
+
+const LAST_PART = 137;
 
 const DELAY_TIME = 300000;
 
@@ -158,26 +159,27 @@ let generateIds = function() {
 };
 
 let getIdFor = function(center) {
-  // !== undefined is needed, because there's a part which id is 0
-  //   so without undefined, it considers condition false
-  if (ids[center[0]] && ids[center[0]][center[1]] !== undefined) {
-      return ids[center[0]][center[1]];
-  } else { // Id not found, so search around center
-    let minX = center[0] - thresholdAround,
-      maxX = center[0] + thresholdAround,
-      minY = center[1] - thresholdAround,
-      maxY = center[1] + thresholdAround;
+    // !== undefined is needed, because there's a part which id is 0
+    //   so without undefined, it considers condition false
+    if (ids[center[0]] && ids[center[0]][center[1]] !==
+        undefined) {
+        return ids[center[0]][center[1]];
+    } else { // Id not found, so search around center
+        let minX = center[0] - thresholdAround,
+            maxX = center[0] + thresholdAround,
+            minY = center[1] - thresholdAround,
+            maxY = center[1] + thresholdAround;
 
-    for (let i = minX; i < maxX; i++){
-      for (let j = minY; j < maxY; j++){
-        if (ids[i] && ids[i][j]){
-          return ids[i][j];
+        for (let i = minX; i < maxX; i++) {
+            for (let j = minY; j < maxY; j++) {
+                if (ids[i] && ids[i][j]) {
+                    return ids[i][j];
+                }
+            }
         }
-      }
-    }
 
-    return NOT_FOUND;
-  }
+        return NOT_FOUND;
+    }
 };
 
 let otherIn = process.argv.indexOf('-i');
@@ -273,23 +275,25 @@ let main = function main() {
             '> Creating output file and records'
         );
         // Fill calculatedMatrix with found parts
-        let entries = [];
-        let saves = [];
         let currentDate = Date.now();
 
+        let id = -1;
+        let saveObject = new PartEntry();
+        saveObject.d = currentDate;
+        saveObject.p = [];
+
         for (let part of parts) {
-            let p = new PartEntry();
-            p.partNumber = getIdFor(part.center);
-            p.date = currentDate;
+            id = getIdFor(part.center);
 
             if (part.color === 'orange') {
-                p.trafficState = TRAFFIC_ORANGE;
+                saveObject.p[id] =
+                    TRAFFIC_ORANGE;
             } else if (part.color === 'green') {
-                p.trafficState = TRAFFIC_GREEN;
+                saveObject.p[id] = TRAFFIC_GREEN;
             } else if (part.color === 'red') {
-                p.trafficState = TRAFFIC_RED;
+                saveObject.p[id] = TRAFFIC_RED;
             } else {
-                p.trafficState = TRAFFIC_BLACK;
+                saveObject.p[id] = TRAFFIC_BLACK;
             }
 
             if (outputFilename) {
@@ -315,31 +319,27 @@ let main = function main() {
                     }
                 }
             }
-
-            if (p.partNumber >= 0) {
-                saves.push(function saveEntry(
-                    callback) {
-                    p.save((err, entry) => {
-                        if (err) {
-                            console.error(
-                                err
-                            );
-                        } else {
-                            entries.push(
-                                entry
-                            );
-                        }
-                        callback();
-                    });
-                });
-            }
         }
 
 
-        async.parallel(saves, () => {
-            console.log('> ' + entries.length +
-                ' entries saved on ' +
-                parts.length);
+        // Check if all parts have an entry
+        let i = 0;
+
+        for (; i <= LAST_PART; i++) {
+            if (saveObject.p[i] === undefined ||
+                saveObject.p[i] < 0) {
+                saveObject.p[i] = -1;
+            }
+        }
+
+        saveObject.save((err) => {
+            if (err) {
+                console.error(err);
+            } else {
+                console.log(
+                    '> Entries successfully saved'
+                );
+            }
         });
 
         // Save matrix
