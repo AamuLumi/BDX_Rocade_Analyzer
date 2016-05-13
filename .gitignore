@@ -31,3 +31,4 @@ analyzer/in.png
 analyzer/out.png
 website/app/conf/Server.js
 server/conf.js
+*.png
