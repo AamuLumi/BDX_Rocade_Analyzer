@@ -340,6 +340,8 @@ export default class DateStorage {
         // Compute the request
         let computedReq = this.computeRequest(req);
 
+        console.log(req, computedReq);
+
         // No entries for requests found
         if (!array || array.length === 0) {
             // So for each requests
@@ -464,7 +466,7 @@ export default class DateStorage {
                 // If there's missing dates after
                 while (dateDifference(timeslotRequest.until,
                         lastDate) > REFRESH_TIME &&
-                    dateDifference(currentDate, lastDate) < 0) {
+                    dateDifference(currentDate, lastDate) > 0) {
                     this.addParts(lastDate, newEmptyPartMap());
 
                     // Compute new date
