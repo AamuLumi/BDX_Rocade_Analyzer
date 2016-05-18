@@ -4,18 +4,13 @@
   "description": "A Bordeaux Traffic Analyzer",
   "author": "Florian Kauder<florian@kauder.fr>",
   "private": true,
-  "main": "./main.js",
   "scripts": {
-    "start": "npm run-script production",
-    "dev": "npm run-script analyzer & npm run-script api & npm run-script dev-website &",
-    "production": "npm run-script analyzer & npm run-script api & npm run-script website &",
-    "api": "forever ./server/forever.json",
-    "analyzer": "forever ./analyzer/forever.json",
-    "deploy": "cd ./website && npm run deploy",
-    "dev-website": "cd ./website && forever ./forever-dev.json",
-    "website": "cd ./website && npm run start"
+    "start": "npm run production",
+    "dev": "pm2 start dev.json",
+    "production": "pm2 start production.json",
+    "deploy": "cd ./website && npm run deploy"
   },
-  "repository": "https://github.com/AamuLumi/BDX_Roccade_Analyzer",
+  "repository": "https://github.com/AamuLumi/BDX_Rocade_Analyzer",
   "dependencies": {
     "body-parser": "^1.14.2",
     "compression": "^1.6.1",

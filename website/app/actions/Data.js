@@ -28,8 +28,7 @@ function fetchDatas(req, missingReq, actions, requestFn) {
                 return response.json();
             })
             .then((json) => {
-              console.log(json);
-                DateStorage.addArray(json, 'd', req);
+                DateStorage.addArray(json, 'd', missingReq);
             })
             .then(() => {
                 return dispatch(requestFn(req, actions, true));

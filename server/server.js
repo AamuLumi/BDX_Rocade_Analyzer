@@ -123,15 +123,12 @@ function searchAndParse(res, searchRequest) {
 
     pipeline.push({
         $sort: { // Sort them by date
-            _id: 1
+            d: 1
         }
     });
 
     console.log('Aggregate', new Date());
-
     PartEntry.aggregate(pipeline, (err, entries) => {
-
-      console.log(entries);
       console.log('After ag', new Date());
 
         if (err) {
