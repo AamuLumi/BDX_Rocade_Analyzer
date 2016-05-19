@@ -1,7 +1,7 @@
-import HistoryTraffic from './HistoryTraffic';
+import DayTraffic from './DayTraffic';
 import WeekTraffic from './WeekTraffic';
 
 export default {
-  HistoryTraffic: HistoryTraffic,
+  DayTraffic: DayTraffic,
   WeekTraffic: WeekTraffic
 };

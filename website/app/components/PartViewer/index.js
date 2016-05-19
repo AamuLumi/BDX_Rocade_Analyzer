@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import {Link} from 'react-router';
 import {connect} from 'react-redux';
 import {loadDataForUpChart, loadDataForDownChart} from '~/app/actions/Data';
 import Charts from './Charts';
@@ -25,7 +24,7 @@ class PartViewer extends Component {
     this.state = {
       width: 500,
       height: 300,
-      upChart: 'HistoryTraffic',
+      upChart: 'DayTraffic',
       downChart: 'WeekTraffic'
     };
   }
@@ -87,8 +86,8 @@ class PartViewer extends Component {
     let {params} = this.props;
     let {width, height} = this.state;
 
-    if (chartName === 'HistoryTraffic') {
-      return (<Charts.HistoryTraffic
+    if (chartName === 'DayTraffic') {
+      return (<Charts.DayTraffic
         data={data}
         id={parseInt(params.id)}
         getData={(req) => getData(req)}

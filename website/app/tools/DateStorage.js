@@ -1,8 +1,15 @@
 /**
- * Element structure :
- *  {
- *  	d : Date,
- *  	s : Integer -> trafficState
+ * DateStorage structure : Immutable.Map {
+ *  y : Immutable.Map {
+ *  	m : Immutable.Map {
+ *  		d : Immutable.Map {
+ *  			h : Immutable.List [{
+ *     			d : Date,
+ *     			p : Immutable.Map => state (Integer)
+ *  		  	}]
+ *  	  	}
+ *    	}
+ *    }
  *  }
  */
 
@@ -14,13 +21,9 @@ const REFRESH_TIME = DateTools.m2ms(5);
 const MAX_TIME_BETWEEN_ENTRY = 2 * REFRESH_TIME;
 
 const LAST_PART = 137;
-const LAST_MONTH = 11;
-const LAST_DAY = 6;
-const LAST_HOUR = 23;
 const DEFAULT_PERIOD = 6;
 
 const STATE_NOT_FOUND = -1;
-const STATE_NOT_LOADED = -2;
 
 let EMPTY_MAP = undefined;
 
@@ -331,16 +334,11 @@ export default class DateStorage {
      * @param {Array/Object} req          the corresponding request of datas
      */
     static addArray(array, dateAccessor, req) {
-        // Variable which contains generated mising dates
-        let newDate = undefined;
-
         let currentDate = new Date();
         let sinceDate = undefined;
 
         // Compute the request
         let computedReq = this.computeRequest(req);
-
-        console.log(req, computedReq);
 
         // No entries for requests found
         if (!array || array.length === 0) {

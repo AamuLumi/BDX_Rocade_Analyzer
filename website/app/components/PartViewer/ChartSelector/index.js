@@ -5,7 +5,7 @@ export default class ChartSelector extends Component {
   static options = [
     {
       name: 'Journalier',
-      chartName: 'HistoryTraffic'
+      chartName: 'DayTraffic'
     }, {
       name: 'Hebdomadaire',
       chartName: 'WeekTraffic'
