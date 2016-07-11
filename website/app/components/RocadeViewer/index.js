@@ -5,6 +5,7 @@ import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import {loadDataForViewer} from '~/app/actions/Data';
 import {saveViewer} from '~/app/actions/RocadeViewer';
+import {loadUpConfiguration} from '~/app/actions/ControlPanel';
 import Rocade from '~/app/conf/Rocade';
 import DateSlider from './DateSlider';
 import ViewerLegend from './ViewerLegend';
@@ -130,6 +131,15 @@ class RocadeViewer extends Component {
     router: React.PropTypes.object.isRequired
   }
 
+  static controlPanel = {
+    components : [{
+      name : 'PeriodPicker',
+      componentName : 'PeriodPicker',
+      params : {}
+    }],
+    onExecute : (e) => {console.log(e);}
+  }
+
   /**
    * Constructor of RocadeViewer
    * @param  {Array} props initial props of the component
@@ -183,6 +193,8 @@ class RocadeViewer extends Component {
       window.addEventListener('resize', (e) => {
         this.handleResize(e);
       });
+
+      this.props.loadControlPanel(RocadeViewer.controlPanel);
 
       // Setup mouse interaction with canvas
       this.setupMouse();
@@ -720,9 +732,6 @@ class RocadeViewer extends Component {
     const data = loadedData.data;
     const {currentDate, selectionInfos, valuesCursor} = this.state;
 
-    console.log(currentDate);
-    console.log(valuesCursor);
-
     let infoBubble = undefined;
 
     let max = 0;
@@ -771,6 +780,9 @@ const mapDispatchToProps = (dispatch) => {
     },
     saveViewer: (state) => {
       dispatch(saveViewer(state));
+    },
+    loadControlPanel: (configuration) => {
+      dispatch(loadUpConfiguration(configuration));
     }
   };
 };

@@ -16,10 +16,15 @@ import {
   downChartData
 } from './Data';
 
+import {
+  configurationPanels
+} from './ControlPanel';
+
 export default createStore(combineReducers({
     getViewer,
     data,
     viewerData,
     upChartData,
-    downChartData
+    downChartData,
+    configurationPanels
 }), applyMiddleware(thunkMiddleware));

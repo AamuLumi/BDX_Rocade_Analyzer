@@ -49,6 +49,10 @@ export default class BasicChart extends Component {
     return 0;
   }
 
+  getConfigurationMenu(){
+    return;
+  }
+
   getHeight(){
     if (this.props.size.height){
       return this.props.size.height - TITLE_HEIGHT;

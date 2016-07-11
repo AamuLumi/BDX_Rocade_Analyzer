@@ -35,6 +35,7 @@ export default class DayTraffic extends BasicChart {
 
   getData() {
     let currentDate = new Date();
+
     let currentDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), 0);
     this.props.getData({'since': currentDay, 'period': currentDate.getHours()});
   }
@@ -56,10 +57,11 @@ export default class DayTraffic extends BasicChart {
 
     for (let entry of data) {
       // If value is correct
-      if (entry.p[id] >= 0){
+      if (entry.p[id] >= 0) {
         // If last value was unavailable
-        if (unavailableState){
-          // We need to add a point to avoid diagonals lines (better charts)
+        if (unavailableState) {
+          // We need to add a point to avoid diagonals lines (better
+          // charts)
           mustPushLastValue = true;
           unavailableState = false;
         }
@@ -68,7 +70,7 @@ export default class DayTraffic extends BasicChart {
         unavailableValue = 0;
       } else {
         // Same than previous
-        if (!unavailableState){
+        if (!unavailableState) {
           unavailableState = true;
           mustPushLastValue = true;
         }
@@ -78,28 +80,16 @@ export default class DayTraffic extends BasicChart {
       }
 
       // Add a point to improve graphic
-      if (mustPushLastValue){
-        res.push({
-          x: lastDate,
-          y: dataValue
-        });
-        unavailableTraffic.push({
-          x: lastDate,
-          y: unavailableValue
-        });
+      if (mustPushLastValue) {
+        res.push({x: lastDate, y: dataValue});
+        unavailableTraffic.push({x: lastDate, y: unavailableValue});
 
         mustPushLastValue = false;
       }
 
       // Add current point
-      res.push({
-        x: entry.d,
-        y: dataValue
-      });
-      unavailableTraffic.push({
-        x: entry.d,
-        y: unavailableValue
-      });
+      res.push({x: entry.d, y: dataValue});
+      unavailableTraffic.push({x: entry.d, y: unavailableValue});
 
       lastDate = entry.d;
     }
